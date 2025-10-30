@@ -5,6 +5,10 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
 ![Dashboard Preview](https://img.shields.io/badge/Status-Active-success)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
+## 📸 Screenshot
+
+![Dashboard Screenshot](screenshot.png)
+
 ## ✨ Features
 
 ### 📊 Multi-Tab Analytics
