@@ -1,6 +1,6 @@
-# Jira Dashboard
+# Jira Service Management - Sales Performance Dashboard
 
-A powerful, interactive dashboard for analyzing Jira project data with advanced filtering, sorting, and visualization capabilities.
+A powerful, interactive dashboard for analyzing Jira Service Management sales data with advanced filtering, sorting, and visualization capabilities. Track sales performance, presales activities, and project due dates in real-time.
 
 ![Dashboard Preview](https://img.shields.io/badge/Status-Active-success)
 ![License](https://img.shields.io/badge/License-MIT-blue)
@@ -34,17 +34,17 @@ Simply download `index.html` - it's a standalone file with no dependencies!
 ### 2. Open
 Open the HTML file in any modern web browser (Chrome, Firefox, Edge, Safari).
 
-**Or use GitHub Pages**: https://whfan0827.github.io/jira-dashboard/
+**Or use GitHub Pages**: https://whfan0827.github.io/jsm-sales-performance-dashboard/
 
 ### 3. Upload CSV
-Click "Upload CSV" and select your Jira export CSV file.
+Click "Upload CSV" and select your Jira Service Management export CSV file.
 
 ### 4. Analyze
 Switch between tabs, set KPIs, apply filters, and export reports!
 
 ## 📋 CSV Format
 
-The dashboard expects a Jira CSV export with the following columns:
+The dashboard expects a Jira Service Management CSV export with the following columns:
 
 ### Required Columns
 - `Issue key` - Jira issue identifier
@@ -63,7 +63,7 @@ See `sample.csv` for a complete example.
 
 ## 🎨 Status Classification
 
-The dashboard automatically classifies Jira statuses into three categories:
+The dashboard automatically classifies Jira Service Management statuses into three categories:
 
 - **ToDo** (Yellow): Status starting with 0, 1, 2, or "To Do"
 - **InProgress** (Blue): Status starting with 3-9
