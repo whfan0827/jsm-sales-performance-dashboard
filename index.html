@@ -218,7 +218,14 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .revenue-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -535,7 +542,13 @@
             .stats-grid {
                 page-break-after: avoid;
                 margin-bottom: 15px;
-                grid-template-columns: repeat(5, 1fr);
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .revenue-stats-grid {
+                page-break-after: avoid;
+                margin-bottom: 15px;
+                grid-template-columns: repeat(3, 1fr);
             }
 
             .stat-card {
@@ -673,9 +686,20 @@
                         <div class="stat-value" id="doneCount">0</div>
                         <div class="stat-percent" id="donePercent">0%</div>
                     </div>
+                </div>
+
+                <div class="revenue-stats-grid">
                     <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                        <div class="stat-label">Total Revenue</div>
-                        <div class="stat-value" id="totalRevenue">$0</div>
+                        <div class="stat-label">Expected Revenue</div>
+                        <div class="stat-value" id="expectedRevenue">$0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);">
+                        <div class="stat-label">Recognized Revenue</div>
+                        <div class="stat-value" id="recognizedRevenue">$0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="stat-label">Realization Rate</div>
+                        <div class="stat-value" id="realizationRate">0%</div>
                     </div>
                 </div>
             </div>
@@ -724,10 +748,12 @@
                                     <th class="sortable" onclick="sortTable(3)">In Progress</th>
                                     <th class="sortable" onclick="sortTable(4)">Completed</th>
                                     <th class="sortable" onclick="sortTable(5)">Subtotal</th>
-                                    <th class="sortable" onclick="sortTable(6)">Revenue</th>
-                                    <th class="sortable" onclick="sortTable(7)">Completion Rate</th>
-                                    <th class="sortable" onclick="sortTable(8)">KPI Target</th>
-                                    <th class="sortable" onclick="sortTable(9)">Achievement Rate</th>
+                                    <th class="sortable" onclick="sortTable(6)">Expected Revenue</th>
+                                    <th class="sortable" onclick="sortTable(7)">Recognized Revenue</th>
+                                    <th class="sortable" onclick="sortTable(8)">Realization Rate</th>
+                                    <th class="sortable" onclick="sortTable(9)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortTable(10)">KPI Target</th>
+                                    <th class="sortable" onclick="sortTable(11)">Achievement Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="reportBody">
@@ -1113,7 +1139,8 @@
                     salesInfo[sales] = {
                         team: team,
                         stats: { ToDo: 0, InProgress: 0, Done: 0 },
-                        revenue: 0
+                        expectedRevenue: 0,
+                        recognizedRevenue: 0
                     };
                 }
 
@@ -1122,8 +1149,13 @@
                     salesInfo[sales].stats[category]++;
                 }
 
-                // Add revenue
-                salesInfo[sales].revenue += funding;
+                // Add expected revenue (all cases)
+                salesInfo[sales].expectedRevenue += funding;
+
+                // Add recognized revenue (only Done cases)
+                if (category === 'Done') {
+                    salesInfo[sales].recognizedRevenue += funding;
+                }
             });
 
             analyzedData = salesInfo;
@@ -1162,8 +1194,14 @@
                     `${stats.done} <small>/ ${originalStats.done}</small>`;
                 document.getElementById('donePercent').innerHTML =
                     `${(stats.done * 100 / totalCases || 0).toFixed(1)}% <small>(All: ${(originalStats.done * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
-                document.getElementById('totalRevenue').innerHTML =
-                    `${formatCurrency(stats.revenue || 0)} <small>/ ${formatCurrency(originalStats.revenue)}</small>`;
+
+                // Revenue cards
+                document.getElementById('expectedRevenue').innerHTML =
+                    `${formatCurrency(stats.expectedRevenue || 0)} <small>/ ${formatCurrency(originalStats.expectedRevenue)}</small>`;
+                document.getElementById('recognizedRevenue').innerHTML =
+                    `${formatCurrency(stats.recognizedRevenue || 0)} <small>/ ${formatCurrency(originalStats.recognizedRevenue)}</small>`;
+                document.getElementById('realizationRate').innerHTML =
+                    `${stats.realizationRate}% <small>(All: ${originalStats.realizationRate}%)</small>`;
             } else {
                 // Show original stats
                 document.getElementById('totalCases').textContent = totalCases;
@@ -1176,7 +1214,11 @@
                 document.getElementById('doneCount').textContent = stats.done;
                 document.getElementById('donePercent').textContent =
                     `${(stats.done * 100 / totalCases).toFixed(1)}%`;
-                document.getElementById('totalRevenue').textContent = formatCurrency(stats.revenue || 0);
+
+                // Revenue cards
+                document.getElementById('expectedRevenue').textContent = formatCurrency(stats.expectedRevenue || 0);
+                document.getElementById('recognizedRevenue').textContent = formatCurrency(stats.recognizedRevenue || 0);
+                document.getElementById('realizationRate').textContent = `${stats.realizationRate}%`;
             }
         }
 
@@ -1185,16 +1227,21 @@
             let totalTodo = 0;
             let totalInProgress = 0;
             let totalDone = 0;
-            let totalRevenue = 0;
+            let totalExpectedRevenue = 0;
+            let totalRecognizedRevenue = 0;
 
             Object.values(salesInfo).forEach(info => {
                 totalTodo += info.stats.ToDo;
                 totalInProgress += info.stats.InProgress;
                 totalDone += info.stats.Done;
-                totalRevenue += info.revenue || 0;
+                totalExpectedRevenue += info.expectedRevenue || 0;
+                totalRecognizedRevenue += info.recognizedRevenue || 0;
             });
 
             const totalCases = totalTodo + totalInProgress + totalDone;
+            const realizationRate = totalExpectedRevenue > 0
+                ? (totalRecognizedRevenue * 100 / totalExpectedRevenue).toFixed(1)
+                : 0;
 
             // Save original stats
             originalStats = {
@@ -1202,7 +1249,9 @@
                 todo: totalTodo,
                 inProgress: totalInProgress,
                 done: totalDone,
-                revenue: totalRevenue,
+                expectedRevenue: totalExpectedRevenue,
+                recognizedRevenue: totalRecognizedRevenue,
+                realizationRate: parseFloat(realizationRate),
                 totalPeople: Object.keys(salesInfo).length
             };
 
@@ -1211,7 +1260,9 @@
                 todo: totalTodo,
                 inProgress: totalInProgress,
                 done: totalDone,
-                revenue: totalRevenue
+                expectedRevenue: totalExpectedRevenue,
+                recognizedRevenue: totalRecognizedRevenue,
+                realizationRate: parseFloat(realizationRate)
             }, false);
 
             // Prepare row data
@@ -1226,6 +1277,12 @@
                 const kpiTarget = getKPITarget(sales);
                 const achievementRate = calculateAchievementRate(stats.Done, kpiTarget);
 
+                const expectedRevenue = info.expectedRevenue || 0;
+                const recognizedRevenue = info.recognizedRevenue || 0;
+                const realizationRate = expectedRevenue > 0
+                    ? (recognizedRevenue * 100 / expectedRevenue).toFixed(1)
+                    : 0;
+
                 allRows.push({
                     team: info.team,
                     sales: sales,
@@ -1233,7 +1290,9 @@
                     inProgress: stats.InProgress,
                     done: stats.Done,
                     subtotal: subtotal,
-                    revenue: info.revenue || 0,
+                    expectedRevenue: expectedRevenue,
+                    recognizedRevenue: recognizedRevenue,
+                    realizationRate: parseFloat(realizationRate),
                     completionRate: parseFloat(completionRate),
                     kpiTarget: kpiTarget,
                     achievementRate: parseFloat(achievementRate)
@@ -1252,7 +1311,9 @@
                 inProgress: totalInProgress,
                 done: totalDone,
                 subtotal: totalCases,
-                revenue: totalRevenue,
+                expectedRevenue: totalExpectedRevenue,
+                recognizedRevenue: totalRecognizedRevenue,
+                realizationRate: parseFloat(realizationRate),
                 completionRate: parseFloat((totalDone * 100 / totalCases).toFixed(1)),
                 kpiTarget: null,  // No KPI for total row
                 achievementRate: parseFloat(avgAchievementRate),
@@ -1280,8 +1341,13 @@
                 todo: visibleDataRows.reduce((sum, r) => sum + r.todo, 0),
                 inProgress: visibleDataRows.reduce((sum, r) => sum + r.inProgress, 0),
                 done: visibleDataRows.reduce((sum, r) => sum + r.done, 0),
-                revenue: visibleDataRows.reduce((sum, r) => sum + (r.revenue || 0), 0)
+                expectedRevenue: visibleDataRows.reduce((sum, r) => sum + (r.expectedRevenue || 0), 0),
+                recognizedRevenue: visibleDataRows.reduce((sum, r) => sum + (r.recognizedRevenue || 0), 0)
             };
+
+            filteredStats.realizationRate = filteredStats.expectedRevenue > 0
+                ? parseFloat((filteredStats.recognizedRevenue * 100 / filteredStats.expectedRevenue).toFixed(1))
+                : 0;
 
             // Update stats cards and filter indicator
             if (isFiltered) {
@@ -1295,37 +1361,51 @@
                     todo: originalStats.todo,
                     inProgress: originalStats.inProgress,
                     done: originalStats.done,
-                    revenue: originalStats.revenue
+                    expectedRevenue: originalStats.expectedRevenue,
+                    recognizedRevenue: originalStats.recognizedRevenue,
+                    realizationRate: originalStats.realizationRate
                 }, false);
                 document.getElementById('filterIndicator').classList.remove('show');
             }
 
-            // Determine how many rows to show
-            const pageSize = currentPageSize === 'all' ? rows.length : parseInt(currentPageSize);
-            const displayRows = rows.slice(0, pageSize);
+            // Separate data rows and total row
+            const dataRows = visibleDataRows;
+            const totalRow = rows.find(r => r.isTotal);
 
-            // Recalculate total row for filtered data
-            const totalRowIndex = displayRows.findIndex(r => r.isTotal);
-            if (totalRowIndex !== -1 && isFiltered) {
-                // Replace total row with filtered totals
-                const avgAchievementRate = visibleDataRows.length > 0
-                    ? (visibleDataRows.reduce((sum, row) => sum + row.achievementRate, 0) / visibleDataRows.length).toFixed(1)
+            // Determine how many data rows to show (excluding total row)
+            const pageSize = currentPageSize === 'all' ? dataRows.length : parseInt(currentPageSize);
+            const displayDataRows = dataRows.slice(0, pageSize);
+
+            // Prepare total row with correct stats
+            let totalRowToDisplay;
+            if (isFiltered) {
+                // Use filtered totals
+                const avgAchievementRate = displayDataRows.length > 0
+                    ? (displayDataRows.reduce((sum, row) => sum + row.achievementRate, 0) / displayDataRows.length).toFixed(1)
                     : 0;
 
-                displayRows[totalRowIndex] = {
+                totalRowToDisplay = {
                     team: '',
                     sales: 'Total',
                     todo: filteredStats.todo,
                     inProgress: filteredStats.inProgress,
                     done: filteredStats.done,
                     subtotal: filteredStats.todo + filteredStats.inProgress + filteredStats.done,
-                    revenue: filteredStats.revenue,
+                    expectedRevenue: filteredStats.expectedRevenue,
+                    recognizedRevenue: filteredStats.recognizedRevenue,
+                    realizationRate: filteredStats.realizationRate,
                     completionRate: parseFloat(((filteredStats.done * 100) / (filteredStats.todo + filteredStats.inProgress + filteredStats.done) || 0).toFixed(1)),
                     kpiTarget: null,
                     achievementRate: parseFloat(avgAchievementRate),
                     isTotal: true
                 };
+            } else {
+                // Use original total row
+                totalRowToDisplay = totalRow;
             }
+
+            // Combine data rows with total row (always show total at the end)
+            const displayRows = [...displayDataRows, totalRowToDisplay];
 
             displayRows.forEach(rowData => {
                 const row = tbody.insertRow();
@@ -1340,7 +1420,9 @@
                         <td><strong>${rowData.inProgress}</strong></td>
                         <td><strong>${rowData.done}</strong></td>
                         <td><strong>${rowData.subtotal}</strong></td>
-                        <td><strong>${formatCurrency(rowData.revenue)}</strong></td>
+                        <td><strong>${formatCurrency(rowData.expectedRevenue)}</strong></td>
+                        <td><strong>${formatCurrency(rowData.recognizedRevenue)}</strong></td>
+                        <td><strong>${rowData.realizationRate}%</strong></td>
                         <td><strong>${rowData.completionRate}%</strong></td>
                         <td><strong>-</strong></td>
                         <td class="${achievementClass}"><strong>Average ${rowData.achievementRate}%</strong></td>
@@ -1357,7 +1439,9 @@
                         <td>${rowData.inProgress}</td>
                         <td>${rowData.done}</td>
                         <td><strong>${rowData.subtotal}</strong></td>
-                        <td><strong>${formatCurrency(rowData.revenue || 0)}</strong></td>
+                        <td><strong>${formatCurrency(rowData.expectedRevenue || 0)}</strong></td>
+                        <td><strong>${formatCurrency(rowData.recognizedRevenue || 0)}</strong></td>
+                        <td><strong>${rowData.realizationRate}%</strong></td>
                         <td class="${completionClass}">
                             ${rowData.completionRate}%
                             <div class="completion-bar">
@@ -1436,10 +1520,12 @@
                     case 3: aVal = a.inProgress; bVal = b.inProgress; break;
                     case 4: aVal = a.done; bVal = b.done; break;
                     case 5: aVal = a.subtotal; bVal = b.subtotal; break;
-                    case 6: aVal = a.revenue || 0; bVal = b.revenue || 0; break;
-                    case 7: aVal = a.completionRate; bVal = b.completionRate; break;
-                    case 8: aVal = a.kpiTarget; bVal = b.kpiTarget; break;
-                    case 9: aVal = a.achievementRate; bVal = b.achievementRate; break;
+                    case 6: aVal = a.expectedRevenue || 0; bVal = b.expectedRevenue || 0; break;
+                    case 7: aVal = a.recognizedRevenue || 0; bVal = b.recognizedRevenue || 0; break;
+                    case 8: aVal = a.realizationRate; bVal = b.realizationRate; break;
+                    case 9: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 10: aVal = a.kpiTarget; bVal = b.kpiTarget; break;
+                    case 11: aVal = a.achievementRate; bVal = b.achievementRate; break;
                     default: return 0;
                 }
 
@@ -1483,19 +1569,21 @@
 
             // Sheet 1: Sales Statistics
             const salesSheetData = [
-                ['Team', 'Sales Person', 'To Do', 'In Progress', 'Completed', 'Subtotal', 'Revenue', 'Completion Rate', 'KPI Target', 'Achievement Rate']
+                ['Team', 'Sales Person', 'To Do', 'In Progress', 'Completed', 'Subtotal', 'Expected Revenue', 'Recognized Revenue', 'Realization Rate', 'Completion Rate', 'KPI Target', 'Achievement Rate']
             ];
 
             allRows.forEach(row => {
                 const completionRate = row.completionRate + '%';
                 const achievementRate = row.achievementRate + '%';
                 const kpiTarget = row.kpiTarget !== null ? row.kpiTarget : '-';
-                const revenue = row.revenue || 0;
+                const expectedRevenue = row.expectedRevenue || 0;
+                const recognizedRevenue = row.recognizedRevenue || 0;
+                const realizationRate = row.realizationRate + '%';
 
                 if (row.isTotal) {
-                    salesSheetData.push(['', row.sales, row.todo, row.inProgress, row.done, row.subtotal, revenue, completionRate, '-', achievementRate]);
+                    salesSheetData.push(['', row.sales, row.todo, row.inProgress, row.done, row.subtotal, expectedRevenue, recognizedRevenue, realizationRate, completionRate, '-', achievementRate]);
                 } else {
-                    salesSheetData.push([row.team, row.sales, row.todo, row.inProgress, row.done, row.subtotal, revenue, completionRate, kpiTarget, achievementRate]);
+                    salesSheetData.push([row.team, row.sales, row.todo, row.inProgress, row.done, row.subtotal, expectedRevenue, recognizedRevenue, realizationRate, completionRate, kpiTarget, achievementRate]);
                 }
             });
 
@@ -1703,9 +1791,16 @@
             const tbody = document.getElementById('presalesReportBody');
             tbody.innerHTML = '';
 
-            // Determine how many rows to show
-            const pageSize = presalesPageSize === 'all' ? rows.length : parseInt(presalesPageSize);
-            const displayRows = rows.slice(0, pageSize);
+            // Separate data rows and total row
+            const dataRows = rows.filter(r => !r.isTotal);
+            const totalRow = rows.find(r => r.isTotal);
+
+            // Determine how many data rows to show (excluding total row)
+            const pageSize = presalesPageSize === 'all' ? dataRows.length : parseInt(presalesPageSize);
+            const displayDataRows = dataRows.slice(0, pageSize);
+
+            // Combine data rows with total row (always show total at the end)
+            const displayRows = totalRow ? [...displayDataRows, totalRow] : displayDataRows;
 
             displayRows.forEach(rowData => {
                 const row = tbody.insertRow();
