@@ -535,7 +535,7 @@
             .stats-grid {
                 page-break-after: avoid;
                 margin-bottom: 15px;
-                grid-template-columns: repeat(4, 1fr);
+                grid-template-columns: repeat(5, 1fr);
             }
 
             .stat-card {
@@ -673,6 +673,10 @@
                         <div class="stat-value" id="doneCount">0</div>
                         <div class="stat-percent" id="donePercent">0%</div>
                     </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value" id="totalRevenue">$0</div>
+                    </div>
                 </div>
             </div>
 
@@ -720,9 +724,10 @@
                                     <th class="sortable" onclick="sortTable(3)">In Progress</th>
                                     <th class="sortable" onclick="sortTable(4)">Completed</th>
                                     <th class="sortable" onclick="sortTable(5)">Subtotal</th>
-                                    <th class="sortable" onclick="sortTable(6)">Completion Rate</th>
-                                    <th class="sortable" onclick="sortTable(7)">KPI Target</th>
-                                    <th class="sortable" onclick="sortTable(8)">Achievement Rate</th>
+                                    <th class="sortable" onclick="sortTable(6)">Revenue</th>
+                                    <th class="sortable" onclick="sortTable(7)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortTable(8)">KPI Target</th>
+                                    <th class="sortable" onclick="sortTable(9)">Achievement Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="reportBody">
@@ -1095,6 +1100,10 @@
                 const status = (row['Status'] || '').trim();
                 let team = (row['Custom field (MMPJ_MCI_SalesTeamID)'] || '').trim();
 
+                // Get funding/revenue data
+                const fundingStr = row['Custom field (MMPJ_MCI_funding(num))'] || '0';
+                const funding = parseFloat(fundingStr) || 0;
+
                 if (!sales) {
                     sales = 'Unassigned';
                     team = '';
@@ -1103,7 +1112,8 @@
                 if (!salesInfo[sales]) {
                     salesInfo[sales] = {
                         team: team,
-                        stats: { ToDo: 0, InProgress: 0, Done: 0 }
+                        stats: { ToDo: 0, InProgress: 0, Done: 0 },
+                        revenue: 0
                     };
                 }
 
@@ -1111,6 +1121,9 @@
                 if (category) {
                     salesInfo[sales].stats[category]++;
                 }
+
+                // Add revenue
+                salesInfo[sales].revenue += funding;
             });
 
             analyzedData = salesInfo;
@@ -1122,6 +1135,11 @@
 
             // Process DueDate data
             displayDueDateSummary(data);
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            return '$' + value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         }
 
         // Update statistics cards
@@ -1144,6 +1162,8 @@
                     `${stats.done} <small>/ ${originalStats.done}</small>`;
                 document.getElementById('donePercent').innerHTML =
                     `${(stats.done * 100 / totalCases || 0).toFixed(1)}% <small>(All: ${(originalStats.done * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+                document.getElementById('totalRevenue').innerHTML =
+                    `${formatCurrency(stats.revenue || 0)} <small>/ ${formatCurrency(originalStats.revenue)}</small>`;
             } else {
                 // Show original stats
                 document.getElementById('totalCases').textContent = totalCases;
@@ -1156,6 +1176,7 @@
                 document.getElementById('doneCount').textContent = stats.done;
                 document.getElementById('donePercent').textContent =
                     `${(stats.done * 100 / totalCases).toFixed(1)}%`;
+                document.getElementById('totalRevenue').textContent = formatCurrency(stats.revenue || 0);
             }
         }
 
@@ -1164,11 +1185,13 @@
             let totalTodo = 0;
             let totalInProgress = 0;
             let totalDone = 0;
+            let totalRevenue = 0;
 
             Object.values(salesInfo).forEach(info => {
                 totalTodo += info.stats.ToDo;
                 totalInProgress += info.stats.InProgress;
                 totalDone += info.stats.Done;
+                totalRevenue += info.revenue || 0;
             });
 
             const totalCases = totalTodo + totalInProgress + totalDone;
@@ -1179,6 +1202,7 @@
                 todo: totalTodo,
                 inProgress: totalInProgress,
                 done: totalDone,
+                revenue: totalRevenue,
                 totalPeople: Object.keys(salesInfo).length
             };
 
@@ -1186,7 +1210,8 @@
             updateStatsCards({
                 todo: totalTodo,
                 inProgress: totalInProgress,
-                done: totalDone
+                done: totalDone,
+                revenue: totalRevenue
             }, false);
 
             // Prepare row data
@@ -1208,6 +1233,7 @@
                     inProgress: stats.InProgress,
                     done: stats.Done,
                     subtotal: subtotal,
+                    revenue: info.revenue || 0,
                     completionRate: parseFloat(completionRate),
                     kpiTarget: kpiTarget,
                     achievementRate: parseFloat(achievementRate)
@@ -1226,6 +1252,7 @@
                 inProgress: totalInProgress,
                 done: totalDone,
                 subtotal: totalCases,
+                revenue: totalRevenue,
                 completionRate: parseFloat((totalDone * 100 / totalCases).toFixed(1)),
                 kpiTarget: null,  // No KPI for total row
                 achievementRate: parseFloat(avgAchievementRate),
@@ -1252,7 +1279,8 @@
             const filteredStats = {
                 todo: visibleDataRows.reduce((sum, r) => sum + r.todo, 0),
                 inProgress: visibleDataRows.reduce((sum, r) => sum + r.inProgress, 0),
-                done: visibleDataRows.reduce((sum, r) => sum + r.done, 0)
+                done: visibleDataRows.reduce((sum, r) => sum + r.done, 0),
+                revenue: visibleDataRows.reduce((sum, r) => sum + (r.revenue || 0), 0)
             };
 
             // Update stats cards and filter indicator
@@ -1266,7 +1294,8 @@
                 updateStatsCards({
                     todo: originalStats.todo,
                     inProgress: originalStats.inProgress,
-                    done: originalStats.done
+                    done: originalStats.done,
+                    revenue: originalStats.revenue
                 }, false);
                 document.getElementById('filterIndicator').classList.remove('show');
             }
@@ -1290,6 +1319,7 @@
                     inProgress: filteredStats.inProgress,
                     done: filteredStats.done,
                     subtotal: filteredStats.todo + filteredStats.inProgress + filteredStats.done,
+                    revenue: filteredStats.revenue,
                     completionRate: parseFloat(((filteredStats.done * 100) / (filteredStats.todo + filteredStats.inProgress + filteredStats.done) || 0).toFixed(1)),
                     kpiTarget: null,
                     achievementRate: parseFloat(avgAchievementRate),
@@ -1310,6 +1340,7 @@
                         <td><strong>${rowData.inProgress}</strong></td>
                         <td><strong>${rowData.done}</strong></td>
                         <td><strong>${rowData.subtotal}</strong></td>
+                        <td><strong>${formatCurrency(rowData.revenue)}</strong></td>
                         <td><strong>${rowData.completionRate}%</strong></td>
                         <td><strong>-</strong></td>
                         <td class="${achievementClass}"><strong>Average ${rowData.achievementRate}%</strong></td>
@@ -1326,6 +1357,7 @@
                         <td>${rowData.inProgress}</td>
                         <td>${rowData.done}</td>
                         <td><strong>${rowData.subtotal}</strong></td>
+                        <td><strong>${formatCurrency(rowData.revenue || 0)}</strong></td>
                         <td class="${completionClass}">
                             ${rowData.completionRate}%
                             <div class="completion-bar">
@@ -1404,9 +1436,10 @@
                     case 3: aVal = a.inProgress; bVal = b.inProgress; break;
                     case 4: aVal = a.done; bVal = b.done; break;
                     case 5: aVal = a.subtotal; bVal = b.subtotal; break;
-                    case 6: aVal = a.completionRate; bVal = b.completionRate; break;
-                    case 7: aVal = a.kpiTarget; bVal = b.kpiTarget; break;
-                    case 8: aVal = a.achievementRate; bVal = b.achievementRate; break;
+                    case 6: aVal = a.revenue || 0; bVal = b.revenue || 0; break;
+                    case 7: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 8: aVal = a.kpiTarget; bVal = b.kpiTarget; break;
+                    case 9: aVal = a.achievementRate; bVal = b.achievementRate; break;
                     default: return 0;
                 }
 
@@ -1450,18 +1483,19 @@
 
             // Sheet 1: Sales Statistics
             const salesSheetData = [
-                ['Team', 'Sales Person', 'To Do', 'In Progress', 'Completed', 'Subtotal', 'Completion Rate', 'KPI Target', 'Achievement Rate']
+                ['Team', 'Sales Person', 'To Do', 'In Progress', 'Completed', 'Subtotal', 'Revenue', 'Completion Rate', 'KPI Target', 'Achievement Rate']
             ];
 
             allRows.forEach(row => {
                 const completionRate = row.completionRate + '%';
                 const achievementRate = row.achievementRate + '%';
                 const kpiTarget = row.kpiTarget !== null ? row.kpiTarget : '-';
+                const revenue = row.revenue || 0;
 
                 if (row.isTotal) {
-                    salesSheetData.push(['', row.sales, row.todo, row.inProgress, row.done, row.subtotal, completionRate, '-', achievementRate]);
+                    salesSheetData.push(['', row.sales, row.todo, row.inProgress, row.done, row.subtotal, revenue, completionRate, '-', achievementRate]);
                 } else {
-                    salesSheetData.push([row.team, row.sales, row.todo, row.inProgress, row.done, row.subtotal, completionRate, kpiTarget, achievementRate]);
+                    salesSheetData.push([row.team, row.sales, row.todo, row.inProgress, row.done, row.subtotal, revenue, completionRate, kpiTarget, achievementRate]);
                 }
             });
 

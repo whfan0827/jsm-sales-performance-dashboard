@@ -2,7 +2,7 @@
 *
 
 # Except these files
-!jira_dashboard.html
+!index.html
 !sample.csv
 !README.md
 !.gitignore
