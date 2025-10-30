@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jira Sales Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            flex-wrap: wrap;
+        }
+
+        .upload-icon {
+            font-size: 24px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .upload-btn {
+            background: #0078d4;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #005a9e;
+        }
+
+        .file-name {
+            color: #666;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .kpi-setting-inline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 20px;
+            margin-left: 20px;
+            border-left: 2px solid #ddd;
+        }
+
+        .kpi-setting-inline label {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .kpi-setting-inline input {
+            width: 60px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .kpi-setting-inline span {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0078d4;
+        }
+
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .page-size {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-size select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .kpi-apply-btn {
+            background: #28a745;
+            color: white;
+            padding: 6px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+
+        .kpi-apply-btn:hover {
+            background: #218838;
+        }
+
+        .kpi-input {
+            width: 60px;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .kpi-input:hover {
+            border-color: #0078d4;
+        }
+
+        .kpi-input:focus {
+            border-color: #0078d4;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,120,212,0.1);
+        }
+
+        .achievement-high {
+            color: #388e3c;
+            font-weight: 600;
+        }
+
+        .achievement-medium {
+            color: #f57c00;
+            font-weight: 600;
+        }
+
+        .achievement-low {
+            color: #d32f2f;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .stat-card.todo {
+            background: linear-gradient(135deg, #ffd93d 0%, #ffb700 100%);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color: #333;
+        }
+
+        .stat-card.todo .stat-label,
+        .stat-card.todo .stat-value,
+        .stat-card.todo .stat-percent {
+            color: #333;
+        }
+
+        .stat-card.inprogress {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .stat-card.done {
+            background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .stat-percent {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        th {
+            background: #0078d4;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        th:hover {
+            background: #005a9e;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.5;
+            font-size: 12px;
+        }
+
+        th.sort-asc::after {
+            content: ' ▲';
+            opacity: 1;
+        }
+
+        th.sort-desc::after {
+            content: ' ▼';
+            opacity: 1;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        tr.total {
+            background: #e6f3ff;
+            font-weight: bold;
+        }
+
+        tr.total:hover {
+            background: #d0e7ff;
+        }
+
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+        }
+
+        .completion-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .completion-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+            transition: width 0.5s ease;
+        }
+
+        .team-header {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .zero-completion {
+            color: #d32f2f;
+        }
+
+        .high-completion {
+            color: #388e3c;
+            font-weight: 600;
+        }
+
+        .filter-indicator {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-indicator.show {
+            display: flex;
+        }
+
+        .filter-indicator-icon {
+            font-size: 18px;
+        }
+
+        .stat-value small {
+            font-size: 16px;
+            opacity: 0.7;
+            font-weight: normal;
+        }
+
+        .stat-percent small {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+        }
+
+        footer a {
+            color: #0078d4;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            color: #0078d4;
+        }
+
+        .tab-button.active {
+            color: #0078d4;
+            border-bottom-color: #0078d4;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #dueDateSummaryTable th {
+            text-align: center;
+            padding: 10px;
+        }
+
+        #dueDateSummaryTable td {
+            text-align: center;
+            padding: 8px;
+        }
+
+        #dueDateSummaryTable td:first-child {
+            font-weight: bold;
+            background: #f8f9fa;
+            text-align: left;
+        }
+
+        #dueDateSummaryTable tr.total {
+            background: #e6f3ff;
+            font-weight: bold;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 10px;
+            }
+
+            .subtitle,
+            .upload-section,
+            .kpi-setting-inline,
+            .filter-indicator,
+            .action-buttons,
+            .table-controls,
+            .tabs {
+                display: none !important;
+            }
+
+            .tab-content:not(.active) {
+                display: none !important;
+            }
+
+            .tab-content.active {
+                display: block !important;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 15px;
+                page-break-after: avoid;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .section-title {
+                page-break-after: avoid;
+                font-size: 16px;
+                margin-top: 10px;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
+            }
+
+            .stats-grid {
+                page-break-after: avoid;
+                margin-bottom: 15px;
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .stat-card {
+                padding: 15px;
+                page-break-inside: avoid;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                background: #7b68ee !important;
+                border: 2px solid #5a4eb8;
+            }
+
+            .stat-card.todo {
+                background: #ffd93d !important;
+                border-color: #ffb700;
+                color: #333 !important;
+            }
+
+            .stat-card.todo .stat-label,
+            .stat-card.todo .stat-value,
+            .stat-card.todo .stat-percent,
+            .stat-card.todo .stat-value small {
+                color: #333 !important;
+            }
+
+            .stat-card.inprogress {
+                background: #4facfe !important;
+                border-color: #2a8cd8;
+            }
+
+            .stat-card.done {
+                background: #ff5252 !important;
+                border-color: #d32f2f;
+            }
+
+            .stat-label {
+                font-size: 12px;
+                font-weight: 600;
+                opacity: 1 !important;
+            }
+
+            .stat-value {
+                font-size: 24px;
+                font-weight: bold;
+            }
+
+            .stat-percent {
+                font-size: 11px;
+                opacity: 1 !important;
+            }
+
+            .stat-value small {
+                font-size: 14px;
+                opacity: 1 !important;
+            }
+
+            table {
+                page-break-inside: auto;
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 6px 8px;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            .completion-bar {
+                height: 6px;
+            }
+
+            .kpi-input {
+                border: none;
+                background: transparent;
+                pointer-events: none;
+            }
+
+            footer {
+                margin-top: 20px;
+                padding-top: 10px;
+                font-size: 10px;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Jira Sales Dashboard</h1>
+        <p class="subtitle">上傳 Jira CSV 文件即可生成分析報告</p>
+
+        <div class="upload-section" id="uploadSection">
+            <span class="upload-icon">📤</span>
+            <label for="csvFile">
+                <span class="upload-btn">上傳 CSV</span>
+            </label>
+            <input type="file" id="csvFile" accept=".csv">
+            <div class="file-name" id="fileName">選擇文件或拖放到此處</div>
+
+            <div class="kpi-setting-inline">
+                <label>🎯 KPI:</label>
+                <input type="number" id="globalKPI" value="5" min="1" max="50">
+                <span>個/人</span>
+                <button class="kpi-apply-btn" onclick="applyGlobalKPI()">套用全部</button>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="filter-indicator" id="filterIndicator">
+                <span class="filter-indicator-icon">🔍</span>
+                <span id="filterText"></span>
+            </div>
+
+            <div class="section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">總案件數</div>
+                        <div class="stat-value" id="totalCases">0</div>
+                    </div>
+                    <div class="stat-card todo">
+                        <div class="stat-label">待辦 (ToDo)</div>
+                        <div class="stat-value" id="todoCount">0</div>
+                        <div class="stat-percent" id="todoPercent">0%</div>
+                    </div>
+                    <div class="stat-card inprogress">
+                        <div class="stat-label">進行中 (InProgress)</div>
+                        <div class="stat-value" id="inprogressCount">0</div>
+                        <div class="stat-percent" id="inprogressPercent">0%</div>
+                    </div>
+                    <div class="stat-card done">
+                        <div class="stat-label">已完成 (Done)</div>
+                        <div class="stat-value" id="doneCount">0</div>
+                        <div class="stat-percent" id="donePercent">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 按鈕 -->
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchTab('sales')">
+                    📊 銷售人員統計
+                </button>
+                <button class="tab-button" onclick="switchTab('presales')">
+                    🎯 Presales統計
+                </button>
+                <button class="tab-button" onclick="switchTab('duedate')">
+                    📅 近三個月案件到期狀況
+                </button>
+            </div>
+
+            <!-- 分頁 1：銷售人員統計 -->
+            <div id="tab-sales" class="tab-content active">
+                <div class="section">
+                    <h2 class="section-title">📋 銷售人員統計表</h2>
+
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="🔍 搜尋部門或銷售人員..." onkeyup="filterTable()">
+                        </div>
+                        <div class="page-size">
+                            <span>顯示:</span>
+                            <select id="pageSizeSelect" onchange="changePageSize()">
+                                <option value="10">10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="all">全部</option>
+                            </select>
+                            <span>筆</span>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table id="reportTable">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="sortTable(0)">部門</th>
+                                    <th class="sortable" onclick="sortTable(1)">銷售人員</th>
+                                    <th class="sortable" onclick="sortTable(2)">待辦</th>
+                                    <th class="sortable" onclick="sortTable(3)">進行中</th>
+                                    <th class="sortable" onclick="sortTable(4)">已完成</th>
+                                    <th class="sortable" onclick="sortTable(5)">小計</th>
+                                    <th class="sortable" onclick="sortTable(6)">完成率</th>
+                                    <th class="sortable" onclick="sortTable(7)">KPI目標</th>
+                                    <th class="sortable" onclick="sortTable(8)">達成率</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分頁 2：Presales 統計 -->
+            <div id="tab-presales" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">🎯 Presales 統計表</h2>
+
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <input type="text" id="presalesSearchInput" placeholder="🔍 搜尋 Presales..." onkeyup="filterPresalesTable()">
+                        </div>
+                        <div class="page-size">
+                            <span>顯示:</span>
+                            <select id="presalesPageSizeSelect" onchange="changePresalesPageSize()">
+                                <option value="10">10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="all">全部</option>
+                            </select>
+                            <span>筆</span>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table id="presalesReportTable">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="sortPresalesTable(0)">Presales</th>
+                                    <th class="sortable" onclick="sortPresalesTable(1)">待辦</th>
+                                    <th class="sortable" onclick="sortPresalesTable(2)">進行中</th>
+                                    <th class="sortable" onclick="sortPresalesTable(3)">已完成</th>
+                                    <th class="sortable" onclick="sortPresalesTable(4)">小計</th>
+                                    <th class="sortable" onclick="sortPresalesTable(5)">完成率</th>
+                                    <th class="sortable" onclick="sortPresalesTable(6)">KPI目標</th>
+                                    <th class="sortable" onclick="sortPresalesTable(7)">達成率</th>
+                                </tr>
+                            </thead>
+                            <tbody id="presalesReportBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分頁 3：近三個月案件到期狀況 -->
+            <div id="tab-duedate" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">📅 近三個月案件到期狀況</h2>
+
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <input type="text" id="dueDateSearchInput" placeholder="🔍 搜尋銷售人員..." onkeyup="filterDueDateTable()">
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table id="dueDateSummaryTable" border="1">
+                            <thead id="dueDateSummaryHead"></thead>
+                            <tbody id="dueDateSummaryBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="download-btn" onclick="downloadExcel()">⬇ 下載 Excel（全部）</button>
+                <button class="download-btn" onclick="downloadPDF()">⬇ 下載 PDF（當前顯示）</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>Jira Dashboard - Open Source Project</p>
+        </footer>
+    </div>
+
+    <script>
+        let analyzedData = null;
+        let allRows = [];
+        let currentSort = { column: -1, ascending: true };
+        let currentPageSize = 10;
+        let kpiTargets = {};  // Store individual KPI targets
+
+        // Presales related variables
+        let presalesData = null;
+        let allPresalesRows = [];
+        let presalesSort = { column: -1, ascending: true };
+        let presalesPageSize = 10;
+        let presalesKpiTargets = {};  // Store individual Presales KPI targets
+
+        // DueDate related variables
+        let dueDateData = null;
+        let allDueDateRows = [];
+
+        // Store original statistics for comparison
+        let originalStats = {
+            totalCases: 0,
+            todo: 0,
+            inProgress: 0,
+            done: 0,
+            totalPeople: 0
+        };
+
+        // Load KPI targets from localStorage
+        function loadKPITargets() {
+            const saved = localStorage.getItem('jira_kpi_targets');
+            if (saved) {
+                try {
+                    kpiTargets = JSON.parse(saved);
+                } catch (e) {
+                    kpiTargets = {};
+                }
+            }
+            const presalesSaved = localStorage.getItem('jira_presales_kpi_targets');
+            if (presalesSaved) {
+                try {
+                    presalesKpiTargets = JSON.parse(presalesSaved);
+                } catch (e) {
+                    presalesKpiTargets = {};
+                }
+            }
+        }
+
+        // Save KPI targets to localStorage
+        function saveKPITargets() {
+            localStorage.setItem('jira_kpi_targets', JSON.stringify(kpiTargets));
+        }
+
+        // Save Presales KPI targets to localStorage
+        function savePresalesKPITargets() {
+            localStorage.setItem('jira_presales_kpi_targets', JSON.stringify(presalesKpiTargets));
+        }
+
+        // Get KPI target for a sales person (default 5)
+        function getKPITarget(sales) {
+            return kpiTargets[sales] || 5;
+        }
+
+        // Set KPI target for a sales person
+        function setKPITarget(sales, target) {
+            const newTarget = parseInt(target);
+            if (newTarget < 1 || newTarget > 50) {
+                alert('請輸入 1-50 之間的數字');
+                return;
+            }
+
+            kpiTargets[sales] = newTarget;
+            saveKPITargets();
+
+            // Update the specific row in allRows
+            const totalRow = allRows.pop();  // Remove total row temporarily
+            const rowIndex = allRows.findIndex(row => row.sales === sales);
+            if (rowIndex !== -1) {
+                allRows[rowIndex].kpiTarget = newTarget;
+                allRows[rowIndex].achievementRate = parseFloat(calculateAchievementRate(allRows[rowIndex].done, newTarget));
+            }
+
+            // Recalculate average achievement rate for total row
+            const avgAchievementRate = allRows.length > 0
+                ? (allRows.reduce((sum, row) => sum + row.achievementRate, 0) / allRows.length).toFixed(1)
+                : 0;
+            totalRow.achievementRate = parseFloat(avgAchievementRate);
+
+            allRows.push(totalRow);  // Add total row back
+
+            // Check if search is active
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterTable();
+            } else {
+                renderTable();
+            }
+        }
+
+        // Apply global KPI to all sales
+        function applyGlobalKPI() {
+            const globalValue = parseInt(document.getElementById('globalKPI').value);
+            if (globalValue < 1 || globalValue > 50) {
+                alert('請輸入 1-50 之間的數字');
+                return;
+            }
+
+            // Apply to all existing sales
+            Object.keys(analyzedData).forEach(sales => {
+                if (sales !== '未指派') {  // Don't set KPI for unassigned
+                    kpiTargets[sales] = globalValue;
+                }
+            });
+
+            saveKPITargets();
+
+            // Update all rows with new KPI targets and recalculate achievement rates
+            const totalRow = allRows.pop();  // Remove total row temporarily
+            allRows.forEach(row => {
+                if (row.sales !== '未指派') {
+                    row.kpiTarget = globalValue;
+                    row.achievementRate = parseFloat(calculateAchievementRate(row.done, globalValue));
+                }
+            });
+
+            // Recalculate average achievement rate for total row
+            const avgAchievementRate = allRows.length > 0
+                ? (allRows.reduce((sum, row) => sum + row.achievementRate, 0) / allRows.length).toFixed(1)
+                : 0;
+            totalRow.achievementRate = parseFloat(avgAchievementRate);
+
+            allRows.push(totalRow);  // Add total row back
+
+            // Check if search is active
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterTable();
+            } else {
+                renderTable();
+            }
+
+            alert(`已將所有人員的 KPI 目標設定為 ${globalValue}`);
+        }
+
+        // Calculate achievement rate
+        function calculateAchievementRate(doneCount, kpiTarget) {
+            if (kpiTarget === 0) return 0;
+            return ((doneCount / kpiTarget) * 100).toFixed(1);
+        }
+
+        // Get achievement class based on rate
+        function getAchievementClass(rate) {
+            if (rate >= 100) return 'achievement-high';
+            if (rate >= 80) return 'achievement-medium';
+            return 'achievement-low';
+        }
+
+        // Load saved KPI targets on page load
+        loadKPITargets();
+
+        // File upload handling
+        const fileInput = document.getElementById('csvFile');
+        const uploadSection = document.getElementById('uploadSection');
+        const fileName = document.getElementById('fileName');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                fileInput.files = files;
+                handleFile(file);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            fileName.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const csv = e.target.result;
+                processCSV(csv);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"/, '').replace(/"$/, ''));
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+
+                const values = parseCSVLine(lines[i]);
+                const row = {};
+
+                // Handle duplicate column names (especially MMPJ_MCI_PS)
+                const headerCounts = {};
+                headers.forEach((header, index) => {
+                    if (!headerCounts[header]) {
+                        headerCounts[header] = 0;
+                    }
+
+                    // If it's a duplicate field, store in array
+                    if (header === 'Custom field (MMPJ_MCI_PS)') {
+                        if (!row[header]) {
+                            row[header] = [];
+                        }
+                        const value = values[index] || '';
+                        if (value.trim()) {
+                            row[header].push(value.trim());
+                        }
+                    } else {
+                        // Non-duplicate fields, normal processing
+                        if (!row[header]) {
+                            row[header] = values[index] || '';
+                        }
+                    }
+                });
+
+                data.push(row);
+            }
+
+            return data;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        current += '"';
+                        i++;
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        function classifyStatus(status) {
+            if (!status) return null;
+
+            const statusLower = status.toLowerCase();
+            if (statusLower === 'done') return 'Done';
+
+            const firstChar = status[0];
+            if (['0', '1', '2'].includes(firstChar)) return 'ToDo';
+            if (['3', '4', '5', '6', '7', '8', '9'].includes(firstChar)) return 'InProgress';
+
+            return null;
+        }
+
+        function processCSV(csv) {
+            const data = parseCSV(csv);
+            const salesInfo = {};
+
+            data.forEach(row => {
+                let sales = row['Custom field (MMPJ_MCI_Sales)'] || '';
+                sales = sales.trim().replace(/^﻿/, '');
+
+                const status = (row['Status'] || '').trim();
+                let team = (row['Custom field (MMPJ_MCI_SalesTeamID)'] || '').trim();
+
+                if (!sales) {
+                    sales = '未指派';
+                    team = '';
+                }
+
+                if (!salesInfo[sales]) {
+                    salesInfo[sales] = {
+                        team: team,
+                        stats: { ToDo: 0, InProgress: 0, Done: 0 }
+                    };
+                }
+
+                const category = classifyStatus(status);
+                if (category) {
+                    salesInfo[sales].stats[category]++;
+                }
+            });
+
+            analyzedData = salesInfo;
+            displayResults(salesInfo);
+
+            // Process Presales data
+            const presalesInfo = processPresalesData(data);
+            displayPresalesResults(presalesInfo);
+
+            // Process DueDate data
+            displayDueDateSummary(data);
+        }
+
+        // Update statistics cards
+        function updateStatsCards(stats, isFiltered = false) {
+            const totalCases = stats.todo + stats.inProgress + stats.done;
+
+            if (isFiltered) {
+                // Show filtered stats with comparison to original
+                document.getElementById('totalCases').innerHTML =
+                    `${totalCases} <small>/ ${originalStats.totalCases}</small>`;
+                document.getElementById('todoCount').innerHTML =
+                    `${stats.todo} <small>/ ${originalStats.todo}</small>`;
+                document.getElementById('todoPercent').innerHTML =
+                    `${(stats.todo * 100 / totalCases || 0).toFixed(1)}% <small>(全部: ${(originalStats.todo * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+                document.getElementById('inprogressCount').innerHTML =
+                    `${stats.inProgress} <small>/ ${originalStats.inProgress}</small>`;
+                document.getElementById('inprogressPercent').innerHTML =
+                    `${(stats.inProgress * 100 / totalCases || 0).toFixed(1)}% <small>(全部: ${(originalStats.inProgress * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+                document.getElementById('doneCount').innerHTML =
+                    `${stats.done} <small>/ ${originalStats.done}</small>`;
+                document.getElementById('donePercent').innerHTML =
+                    `${(stats.done * 100 / totalCases || 0).toFixed(1)}% <small>(全部: ${(originalStats.done * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+            } else {
+                // Show original stats
+                document.getElementById('totalCases').textContent = totalCases;
+                document.getElementById('todoCount').textContent = stats.todo;
+                document.getElementById('todoPercent').textContent =
+                    `${(stats.todo * 100 / totalCases).toFixed(1)}%`;
+                document.getElementById('inprogressCount').textContent = stats.inProgress;
+                document.getElementById('inprogressPercent').textContent =
+                    `${(stats.inProgress * 100 / totalCases).toFixed(1)}%`;
+                document.getElementById('doneCount').textContent = stats.done;
+                document.getElementById('donePercent').textContent =
+                    `${(stats.done * 100 / totalCases).toFixed(1)}%`;
+            }
+        }
+
+        function displayResults(salesInfo) {
+            // Calculate totals
+            let totalTodo = 0;
+            let totalInProgress = 0;
+            let totalDone = 0;
+
+            Object.values(salesInfo).forEach(info => {
+                totalTodo += info.stats.ToDo;
+                totalInProgress += info.stats.InProgress;
+                totalDone += info.stats.Done;
+            });
+
+            const totalCases = totalTodo + totalInProgress + totalDone;
+
+            // Save original stats
+            originalStats = {
+                totalCases: totalCases,
+                todo: totalTodo,
+                inProgress: totalInProgress,
+                done: totalDone,
+                totalPeople: Object.keys(salesInfo).length
+            };
+
+            // Update stats cards with original data
+            updateStatsCards({
+                todo: totalTodo,
+                inProgress: totalInProgress,
+                done: totalDone
+            }, false);
+
+            // Prepare row data
+            allRows = [];
+            const sortedSales = Object.keys(salesInfo).sort();
+
+            sortedSales.forEach(sales => {
+                const info = salesInfo[sales];
+                const stats = info.stats;
+                const subtotal = stats.ToDo + stats.InProgress + stats.Done;
+                const completionRate = subtotal > 0 ? (stats.Done * 100 / subtotal).toFixed(1) : 0;
+                const kpiTarget = getKPITarget(sales);
+                const achievementRate = calculateAchievementRate(stats.Done, kpiTarget);
+
+                allRows.push({
+                    team: info.team,
+                    sales: sales,
+                    todo: stats.ToDo,
+                    inProgress: stats.InProgress,
+                    done: stats.Done,
+                    subtotal: subtotal,
+                    completionRate: parseFloat(completionRate),
+                    kpiTarget: kpiTarget,
+                    achievementRate: parseFloat(achievementRate)
+                });
+            });
+
+            // Add total row - calculate average achievement rate
+            const avgAchievementRate = allRows.length > 0
+                ? (allRows.reduce((sum, row) => sum + row.achievementRate, 0) / allRows.length).toFixed(1)
+                : 0;
+
+            allRows.push({
+                team: '',
+                sales: '總計',
+                todo: totalTodo,
+                inProgress: totalInProgress,
+                done: totalDone,
+                subtotal: totalCases,
+                completionRate: parseFloat((totalDone * 100 / totalCases).toFixed(1)),
+                kpiTarget: null,  // No KPI for total row
+                achievementRate: parseFloat(avgAchievementRate),
+                isTotal: true
+            });
+
+            // Render table
+            renderTable();
+
+            // Show results
+            document.getElementById('results').classList.add('show');
+        }
+
+        function renderTable(filteredRows = null) {
+            const rows = filteredRows || allRows;
+            const tbody = document.getElementById('reportBody');
+            tbody.innerHTML = '';
+
+            // Check if filtering is active
+            const isFiltered = filteredRows !== null;
+
+            // Calculate stats for visible rows (excluding total row)
+            const visibleDataRows = rows.filter(r => !r.isTotal);
+            const filteredStats = {
+                todo: visibleDataRows.reduce((sum, r) => sum + r.todo, 0),
+                inProgress: visibleDataRows.reduce((sum, r) => sum + r.inProgress, 0),
+                done: visibleDataRows.reduce((sum, r) => sum + r.done, 0)
+            };
+
+            // Update stats cards and filter indicator
+            if (isFiltered) {
+                updateStatsCards(filteredStats, true);
+                const filterIndicator = document.getElementById('filterIndicator');
+                const filterText = document.getElementById('filterText');
+                filterIndicator.classList.add('show');
+                filterText.textContent = `篩選結果：顯示 ${visibleDataRows.length} 人，共 ${originalStats.totalPeople} 人`;
+            } else {
+                updateStatsCards({
+                    todo: originalStats.todo,
+                    inProgress: originalStats.inProgress,
+                    done: originalStats.done
+                }, false);
+                document.getElementById('filterIndicator').classList.remove('show');
+            }
+
+            // Determine how many rows to show
+            const pageSize = currentPageSize === 'all' ? rows.length : parseInt(currentPageSize);
+            const displayRows = rows.slice(0, pageSize);
+
+            // Recalculate total row for filtered data
+            const totalRowIndex = displayRows.findIndex(r => r.isTotal);
+            if (totalRowIndex !== -1 && isFiltered) {
+                // Replace total row with filtered totals
+                const avgAchievementRate = visibleDataRows.length > 0
+                    ? (visibleDataRows.reduce((sum, row) => sum + row.achievementRate, 0) / visibleDataRows.length).toFixed(1)
+                    : 0;
+
+                displayRows[totalRowIndex] = {
+                    team: '',
+                    sales: '總計',
+                    todo: filteredStats.todo,
+                    inProgress: filteredStats.inProgress,
+                    done: filteredStats.done,
+                    subtotal: filteredStats.todo + filteredStats.inProgress + filteredStats.done,
+                    completionRate: parseFloat(((filteredStats.done * 100) / (filteredStats.todo + filteredStats.inProgress + filteredStats.done) || 0).toFixed(1)),
+                    kpiTarget: null,
+                    achievementRate: parseFloat(avgAchievementRate),
+                    isTotal: true
+                };
+            }
+
+            displayRows.forEach(rowData => {
+                const row = tbody.insertRow();
+
+                if (rowData.isTotal) {
+                    row.className = 'total';
+                    const achievementClass = getAchievementClass(rowData.achievementRate);
+                    row.innerHTML = `
+                        <td></td>
+                        <td><strong>${rowData.sales}</strong></td>
+                        <td><strong>${rowData.todo}</strong></td>
+                        <td><strong>${rowData.inProgress}</strong></td>
+                        <td><strong>${rowData.done}</strong></td>
+                        <td><strong>${rowData.subtotal}</strong></td>
+                        <td><strong>${rowData.completionRate}%</strong></td>
+                        <td><strong>-</strong></td>
+                        <td class="${achievementClass}"><strong>平均 ${rowData.achievementRate}%</strong></td>
+                    `;
+                } else {
+                    const completionClass = rowData.completionRate == 0 ? 'zero-completion' :
+                                           rowData.completionRate >= 75 ? 'high-completion' : '';
+                    const achievementClass = getAchievementClass(rowData.achievementRate);
+
+                    row.innerHTML = `
+                        <td>${rowData.team}</td>
+                        <td><strong>${rowData.sales}</strong></td>
+                        <td>${rowData.todo}</td>
+                        <td>${rowData.inProgress}</td>
+                        <td>${rowData.done}</td>
+                        <td><strong>${rowData.subtotal}</strong></td>
+                        <td class="${completionClass}">
+                            ${rowData.completionRate}%
+                            <div class="completion-bar">
+                                <div class="completion-fill" style="width: ${Math.min(rowData.completionRate, 100)}%"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="number"
+                                   class="kpi-input"
+                                   value="${rowData.kpiTarget}"
+                                   min="1"
+                                   max="50"
+                                   onchange="setKPITarget('${rowData.sales}', this.value)">
+                        </td>
+                        <td class="${achievementClass}">
+                            ${rowData.achievementRate}%
+                            <div class="completion-bar">
+                                <div class="completion-fill" style="width: ${Math.min(rowData.achievementRate, 100)}%"></div>
+                            </div>
+                            <small>(${rowData.done}/${rowData.kpiTarget})</small>
+                        </td>
+                    `;
+                }
+            });
+        }
+
+        // Search function
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            if (!searchTerm) {
+                // No search term, show all data
+                renderTable(null);
+                return;
+            }
+
+            const filtered = allRows.filter(row => {
+                if (row.isTotal) return true; // Always show total row
+                return row.team.toLowerCase().includes(searchTerm) ||
+                       row.sales.toLowerCase().includes(searchTerm);
+            });
+            renderTable(filtered);
+        }
+
+        // Sort function
+        function sortTable(columnIndex) {
+            const headers = document.querySelectorAll('th');
+
+            // Determine sort direction
+            if (currentSort.column === columnIndex) {
+                currentSort.ascending = !currentSort.ascending;
+            } else {
+                currentSort.column = columnIndex;
+                currentSort.ascending = true;
+            }
+
+            // Update header classes
+            headers.forEach((header, index) => {
+                header.classList.remove('sort-asc', 'sort-desc');
+                if (index === columnIndex) {
+                    header.classList.add(currentSort.ascending ? 'sort-asc' : 'sort-desc');
+                }
+            });
+
+            // Sort data (exclude total row)
+            const totalRow = allRows.pop();
+            const dataRows = allRows;
+
+            dataRows.sort((a, b) => {
+                let aVal, bVal;
+
+                switch(columnIndex) {
+                    case 0: aVal = a.team; bVal = b.team; break;
+                    case 1: aVal = a.sales; bVal = b.sales; break;
+                    case 2: aVal = a.todo; bVal = b.todo; break;
+                    case 3: aVal = a.inProgress; bVal = b.inProgress; break;
+                    case 4: aVal = a.done; bVal = b.done; break;
+                    case 5: aVal = a.subtotal; bVal = b.subtotal; break;
+                    case 6: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 7: aVal = a.kpiTarget; bVal = b.kpiTarget; break;
+                    case 8: aVal = a.achievementRate; bVal = b.achievementRate; break;
+                    default: return 0;
+                }
+
+                if (typeof aVal === 'string') {
+                    return currentSort.ascending ?
+                        aVal.localeCompare(bVal, 'zh-TW') :
+                        bVal.localeCompare(aVal, 'zh-TW');
+                } else {
+                    return currentSort.ascending ? aVal - bVal : bVal - aVal;
+                }
+            });
+
+            allRows = dataRows;
+            allRows.push(totalRow);
+
+            // Check if search is active and re-apply filter
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterTable();
+            } else {
+                renderTable();
+            }
+        }
+
+        // Page size change
+        function changePageSize() {
+            currentPageSize = document.getElementById('pageSizeSelect').value;
+
+            // Check if search is active
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            if (searchTerm) {
+                // Re-apply filter
+                filterTable();
+            } else {
+                renderTable();
+            }
+        }
+
+        function downloadExcel() {
+            if (!analyzedData) return;
+
+            // Sheet 1: Sales Statistics
+            const salesSheetData = [
+                ['部門', '銷售人員', '待辦', '進行中', '已完成', '小計', '完成率', 'KPI目標', '達成率']
+            ];
+
+            allRows.forEach(row => {
+                const completionRate = row.completionRate + '%';
+                const achievementRate = row.achievementRate + '%';
+                const kpiTarget = row.kpiTarget !== null ? row.kpiTarget : '-';
+
+                if (row.isTotal) {
+                    salesSheetData.push(['', row.sales, row.todo, row.inProgress, row.done, row.subtotal, completionRate, '-', achievementRate]);
+                } else {
+                    salesSheetData.push([row.team, row.sales, row.todo, row.inProgress, row.done, row.subtotal, completionRate, kpiTarget, achievementRate]);
+                }
+            });
+
+            // Sheet 2: Presales Statistics
+            const presalesSheetData = [
+                ['Presales', '待辦', '進行中', '已完成', '小計', '完成率', 'KPI目標', '達成率']
+            ];
+
+            allPresalesRows.forEach(row => {
+                const completionRate = row.completionRate + '%';
+                const kpiTarget = row.kpiTarget !== null ? row.kpiTarget : '';
+                const achievementRate = row.achievementRate !== null ? row.achievementRate + '%' : '-';
+
+                presalesSheetData.push([row.presales, row.todo, row.inProgress, row.done, row.subtotal, completionRate, kpiTarget, achievementRate]);
+            });
+
+            // Sheet 3: DueDate Summary
+            const dueDateSheetData = [];
+            const dueTable = document.getElementById('dueDateSummaryTable');
+            if (dueTable) {
+                const dueRows = dueTable.querySelectorAll('tr');
+                dueRows.forEach(row => {
+                    const cells = Array.from(row.cells).map(c => c.textContent.trim());
+                    dueDateSheetData.push(cells);
+                });
+            }
+
+            // Create Excel Workbook
+            const wb = XLSX.utils.book_new();
+            const ws1 = XLSX.utils.aoa_to_sheet(salesSheetData);
+            const ws2 = XLSX.utils.aoa_to_sheet(presalesSheetData);
+            const ws3 = XLSX.utils.aoa_to_sheet(dueDateSheetData);
+
+            XLSX.utils.book_append_sheet(wb, ws1, '銷售人員統計');
+            XLSX.utils.book_append_sheet(wb, ws2, 'Presales統計');
+            XLSX.utils.book_append_sheet(wb, ws3, '近三個月案件到期狀況');
+
+            XLSX.writeFile(wb, `Jira_Dashboard_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+
+        // Process Presales Data
+        function processPresalesData(data) {
+            const presalesInfo = {};
+
+            data.forEach(row => {
+                const status = (row['Status'] || '').trim();
+                let team = (row['Custom field (MMPJ_MCI_SalesTeamID)'] || '').trim();
+
+                // Get all Presales personnel (may be array)
+                let presalesList = row['Custom field (MMPJ_MCI_PS)'];
+
+                // If it's an array, process each person
+                if (Array.isArray(presalesList)) {
+                    // Filter empty values
+                    presalesList = presalesList.filter(p => p && p.trim());
+
+                    if (presalesList.length === 0) {
+                        presalesList = ['未指派'];
+                    }
+                } else {
+                    // If not array (old format or single value)
+                    let presales = (presalesList || '').trim().replace(/^﻿/, '');
+                    presalesList = presales ? [presales] : ['未指派'];
+                }
+
+                // Count for each Presales person
+                presalesList.forEach(presales => {
+                    if (!presalesInfo[presales]) {
+                        presalesInfo[presales] = {
+                            team: team,
+                            stats: { ToDo: 0, InProgress: 0, Done: 0 }
+                        };
+                    }
+
+                    const category = classifyStatus(status);
+                    if (category) {
+                        presalesInfo[presales].stats[category]++;
+                    }
+                });
+            });
+
+            return presalesInfo;
+        }
+
+        // Get Presales KPI target (default null for optional)
+        function getPresalesKPITarget(presales) {
+            return presalesKpiTargets[presales] || null;
+        }
+
+        // Set Presales KPI target
+        function setPresalesKPITarget(presales, target) {
+            if (!target || target === '') {
+                // Remove KPI if empty
+                delete presalesKpiTargets[presales];
+                savePresalesKPITargets();
+            } else {
+                const newTarget = parseInt(target);
+                if (newTarget < 1 || newTarget > 50) {
+                    alert('請輸入 1-50 之間的數字');
+                    return;
+                }
+                presalesKpiTargets[presales] = newTarget;
+                savePresalesKPITargets();
+            }
+
+            // Update the specific row in allPresalesRows
+            const totalRow = allPresalesRows.pop();
+            const rowIndex = allPresalesRows.findIndex(row => row.presales === presales);
+            if (rowIndex !== -1) {
+                const kpiTarget = getPresalesKPITarget(presales);
+                allPresalesRows[rowIndex].kpiTarget = kpiTarget;
+                if (kpiTarget) {
+                    allPresalesRows[rowIndex].achievementRate = parseFloat(calculateAchievementRate(allPresalesRows[rowIndex].done, kpiTarget));
+                } else {
+                    allPresalesRows[rowIndex].achievementRate = null;
+                }
+            }
+
+            allPresalesRows.push(totalRow);
+
+            // Check if search is active
+            const searchTerm = document.getElementById('presalesSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterPresalesTable();
+            } else {
+                renderPresalesTable();
+            }
+        }
+
+        // Display Presales Results
+        function displayPresalesResults(presalesInfo) {
+            presalesData = presalesInfo;
+
+            // Calculate totals
+            let totalTodo = 0;
+            let totalInProgress = 0;
+            let totalDone = 0;
+
+            Object.values(presalesInfo).forEach(info => {
+                totalTodo += info.stats.ToDo;
+                totalInProgress += info.stats.InProgress;
+                totalDone += info.stats.Done;
+            });
+
+            const totalCases = totalTodo + totalInProgress + totalDone;
+
+            // Prepare row data
+            allPresalesRows = [];
+            const sortedPresales = Object.keys(presalesInfo).sort((a, b) => {
+                const subtotalA = presalesInfo[a].stats.ToDo + presalesInfo[a].stats.InProgress + presalesInfo[a].stats.Done;
+                const subtotalB = presalesInfo[b].stats.ToDo + presalesInfo[b].stats.InProgress + presalesInfo[b].stats.Done;
+                return subtotalB - subtotalA;
+            });
+
+            sortedPresales.forEach(presales => {
+                const info = presalesInfo[presales];
+                const stats = info.stats;
+                const subtotal = stats.ToDo + stats.InProgress + stats.Done;
+                const completionRate = subtotal > 0 ? (stats.Done * 100 / subtotal).toFixed(1) : 0;
+                const kpiTarget = getPresalesKPITarget(presales);
+                const achievementRate = kpiTarget ? calculateAchievementRate(stats.Done, kpiTarget) : null;
+
+                if (presales === '未指派' && subtotal === 0) {
+                    return;
+                }
+
+                allPresalesRows.push({
+                    team: info.team,
+                    presales: presales,
+                    todo: stats.ToDo,
+                    inProgress: stats.InProgress,
+                    done: stats.Done,
+                    subtotal: subtotal,
+                    completionRate: parseFloat(completionRate),
+                    kpiTarget: kpiTarget,
+                    achievementRate: achievementRate ? parseFloat(achievementRate) : null
+                });
+            });
+
+            // Add total row - calculate average achievement rate (only for those with KPI set)
+            const rowsWithKPI = allPresalesRows.filter(row => row.kpiTarget !== null && row.achievementRate !== null);
+            const avgAchievementRate = rowsWithKPI.length > 0
+                ? (rowsWithKPI.reduce((sum, row) => sum + row.achievementRate, 0) / rowsWithKPI.length).toFixed(1)
+                : null;
+
+            allPresalesRows.push({
+                team: '',
+                presales: '總計',
+                todo: totalTodo,
+                inProgress: totalInProgress,
+                done: totalDone,
+                subtotal: totalCases,
+                completionRate: parseFloat((totalDone * 100 / totalCases).toFixed(1)),
+                kpiTarget: null,
+                achievementRate: avgAchievementRate ? parseFloat(avgAchievementRate) : null,
+                isTotal: true
+            });
+
+            renderPresalesTable();
+        }
+
+        // Render Presales Table
+        function renderPresalesTable(filteredRows = null) {
+            const rows = filteredRows || allPresalesRows;
+            const tbody = document.getElementById('presalesReportBody');
+            tbody.innerHTML = '';
+
+            // Determine how many rows to show
+            const pageSize = presalesPageSize === 'all' ? rows.length : parseInt(presalesPageSize);
+            const displayRows = rows.slice(0, pageSize);
+
+            displayRows.forEach(rowData => {
+                const row = tbody.insertRow();
+
+                if (rowData.isTotal) {
+                    row.className = 'total';
+                    const achievementHTML = rowData.achievementRate !== null
+                        ? `<strong>平均 ${rowData.achievementRate}%</strong>`
+                        : '<strong>-</strong>';
+                    const achievementClass = rowData.achievementRate !== null ? getAchievementClass(rowData.achievementRate) : '';
+
+                    row.innerHTML = `
+                        <td><strong>${rowData.presales}</strong></td>
+                        <td><strong>${rowData.todo}</strong></td>
+                        <td><strong>${rowData.inProgress}</strong></td>
+                        <td><strong>${rowData.done}</strong></td>
+                        <td><strong>${rowData.subtotal}</strong></td>
+                        <td><strong>${rowData.completionRate}%</strong></td>
+                        <td><strong>-</strong></td>
+                        <td class="${achievementClass}">${achievementHTML}</td>
+                    `;
+                } else {
+                    const completionClass = rowData.completionRate == 0 ? 'zero-completion' :
+                        rowData.completionRate >= 75 ? 'high-completion' : '';
+
+                    const kpiInputValue = rowData.kpiTarget !== null ? rowData.kpiTarget : '';
+                    const achievementHTML = rowData.achievementRate !== null
+                        ? `${rowData.achievementRate}%
+                            <div class="completion-bar">
+                                <div class="completion-fill" style="width: ${Math.min(rowData.achievementRate, 100)}%"></div>
+                            </div>
+                            <small>(${rowData.done}/${rowData.kpiTarget})</small>`
+                        : '-';
+                    const achievementClass = rowData.achievementRate !== null ? getAchievementClass(rowData.achievementRate) : '';
+
+                    row.innerHTML = `
+                        <td><strong>${rowData.presales}</strong></td>
+                        <td>${rowData.todo}</td>
+                        <td>${rowData.inProgress}</td>
+                        <td>${rowData.done}</td>
+                        <td><strong>${rowData.subtotal}</strong></td>
+                        <td class="${completionClass}">
+                            ${rowData.completionRate}%
+                            <div class="completion-bar">
+                                <div class="completion-fill" style="width: ${Math.min(rowData.completionRate, 100)}%"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="number"
+                                   class="kpi-input"
+                                   value="${kpiInputValue}"
+                                   placeholder="選填"
+                                   min="1"
+                                   max="50"
+                                   onchange="setPresalesKPITarget('${rowData.presales}', this.value)">
+                        </td>
+                        <td class="${achievementClass}">
+                            ${achievementHTML}
+                        </td>
+                    `;
+                }
+            });
+        }
+
+        // Filter Presales Table
+        function filterPresalesTable() {
+            const searchTerm = document.getElementById('presalesSearchInput').value.toLowerCase();
+
+            if (!searchTerm) {
+                renderPresalesTable(null);
+                return;
+            }
+
+            const filtered = allPresalesRows.filter(row => {
+                if (row.isTotal) return true;
+                return row.presales.toLowerCase().includes(searchTerm);
+            });
+            renderPresalesTable(filtered);
+        }
+
+        // Sort Presales Table
+        function sortPresalesTable(columnIndex) {
+            const headers = document.querySelectorAll('#presalesReportTable th.sortable');
+
+            // Determine sort direction
+            if (presalesSort.column === columnIndex) {
+                presalesSort.ascending = !presalesSort.ascending;
+            } else {
+                presalesSort.column = columnIndex;
+                presalesSort.ascending = true;
+            }
+
+            // Update header classes
+            headers.forEach((header, index) => {
+                header.classList.remove('sort-asc', 'sort-desc');
+                if (index === columnIndex) {
+                    header.classList.add(presalesSort.ascending ? 'sort-asc' : 'sort-desc');
+                }
+            });
+
+            // Sort data (exclude total row)
+            const totalRow = allPresalesRows.pop();
+            const dataRows = allPresalesRows;
+
+            dataRows.sort((a, b) => {
+                let aVal, bVal;
+
+                switch (columnIndex) {
+                    case 0: aVal = a.presales; bVal = b.presales; break;
+                    case 1: aVal = a.todo; bVal = b.todo; break;
+                    case 2: aVal = a.inProgress; bVal = b.inProgress; break;
+                    case 3: aVal = a.done; bVal = b.done; break;
+                    case 4: aVal = a.subtotal; bVal = b.subtotal; break;
+                    case 5: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 6: aVal = a.kpiTarget !== null ? a.kpiTarget : -1; bVal = b.kpiTarget !== null ? b.kpiTarget : -1; break;
+                    case 7: aVal = a.achievementRate !== null ? a.achievementRate : -1; bVal = b.achievementRate !== null ? b.achievementRate : -1; break;
+                    default: return 0;
+                }
+
+                if (typeof aVal === 'string') {
+                    return presalesSort.ascending ?
+                        aVal.localeCompare(bVal, 'zh-TW') :
+                        bVal.localeCompare(aVal, 'zh-TW');
+                } else {
+                    return presalesSort.ascending ? aVal - bVal : bVal - aVal;
+                }
+            });
+
+            allPresalesRows = dataRows;
+            allPresalesRows.push(totalRow);
+
+            const searchTerm = document.getElementById('presalesSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterPresalesTable();
+            } else {
+                renderPresalesTable();
+            }
+        }
+
+        // Change Presales Page Size
+        function changePresalesPageSize() {
+            presalesPageSize = document.getElementById('presalesPageSizeSelect').value;
+
+            const searchTerm = document.getElementById('presalesSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterPresalesTable();
+            } else {
+                renderPresalesTable();
+            }
+        }
+
+        // Display DueDate Summary
+        function displayDueDateSummary(data) {
+            const now = new Date();
+            const months = [];
+
+            // Build this month, next month, month after next
+            for (let i = 0; i < 3; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                const displayLabel = i === 0 ? '本月' : i === 1 ? '下月' : '下下月';
+                months.push({ label, displayLabel });
+            }
+
+            // Initialize statistics structure: by sales -> month -> status
+            const summary = {};
+
+            data.forEach(item => {
+                // Get sales person
+                let sales = item['Custom field (MMPJ_MCI_Sales)'] || '';
+                sales = sales.trim().replace(/^﻿/, '');
+                if (!sales) sales = '未指派';
+
+                // Get Due Date
+                const dueDate = item['Due date'] || item['DueDate'] || item['Due Date'] || '';
+                if (!dueDate) return;
+
+                // Parse date
+                let parsedDate;
+                try {
+                    parsedDate = new Date(dueDate);
+                    if (isNaN(parsedDate.getTime())) return;
+                } catch (e) {
+                    return;
+                }
+
+                const dueYear = parsedDate.getFullYear();
+                const dueMonth = parsedDate.getMonth() + 1;
+                const monthLabel = `${dueYear}-${String(dueMonth).padStart(2, '0')}`;
+
+                // Check if within three months
+                const monthInfo = months.find(m => m.label === monthLabel);
+                if (!monthInfo) return;
+
+                // Initialize sales record
+                if (!summary[sales]) {
+                    summary[sales] = {};
+                    months.forEach(m => {
+                        summary[sales][m.label] = { total: 0, todo: 0, inprogress: 0, done: 0 };
+                    });
+                }
+
+                // Calculate status
+                const status = (item['Status'] || '').trim();
+                const category = classifyStatus(status);
+
+                summary[sales][monthLabel].total++;
+                if (category === 'ToDo') summary[sales][monthLabel].todo++;
+                else if (category === 'InProgress') summary[sales][monthLabel].inprogress++;
+                else if (category === 'Done') summary[sales][monthLabel].done++;
+            });
+
+            dueDateData = summary;
+            allDueDateRows = Object.keys(summary).sort();
+            renderDueDateTable(summary, months);
+        }
+
+        // Render DueDate Table
+        function renderDueDateTable(summary, months, filteredSales = null) {
+            const table = document.getElementById("dueDateSummaryTable");
+            const head = document.getElementById("dueDateSummaryHead");
+            const body = document.getElementById("dueDateSummaryBody");
+
+            head.innerHTML = "";
+            body.innerHTML = "";
+
+            // Build header
+            let headerHTML = '<tr><th rowspan="2" style="vertical-align: middle;">銷售人員</th>';
+            months.forEach(m => {
+                headerHTML += `<th colspan="5" style="text-align: center;">${m.label} (${m.displayLabel})</th>`;
+            });
+            headerHTML += '</tr><tr>';
+            months.forEach(() => {
+                headerHTML += '<th>到期總數</th><th>待辦</th><th>進行中</th><th>已完成</th><th>完成率</th>';
+            });
+            headerHTML += '</tr>';
+            head.innerHTML = headerHTML;
+
+            // If no data
+            if (Object.keys(summary).length === 0) {
+                const row = body.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 1 + months.length * 5;
+                cell.style.textAlign = 'center';
+                cell.style.padding = '40px';
+                cell.style.color = '#999';
+                cell.innerHTML = '近三個月內無到期案件';
+                return;
+            }
+
+            // Determine which sales to display
+            const displaySales = filteredSales || allDueDateRows;
+
+            // Calculate totals
+            const totals = {};
+            months.forEach(m => {
+                totals[m.label] = { total: 0, todo: 0, inprogress: 0, done: 0 };
+            });
+
+            // Build data rows
+            displaySales.forEach(sales => {
+                // Check if has any due cases
+                const hasData = months.some(m => summary[sales][m.label].total > 0);
+                if (sales === '未指派' && !hasData) return;
+
+                const row = body.insertRow();
+
+                // Sales name
+                const nameCell = row.insertCell(0);
+                nameCell.innerHTML = `<strong>${sales}</strong>`;
+                nameCell.style.background = '#f8f9fa';
+
+                // Data for each month
+                months.forEach(m => {
+                    const data = summary[sales][m.label];
+                    const completionRate = data.total > 0 ? ((data.done / data.total) * 100).toFixed(1) : '0.0';
+
+                    // Add to totals
+                    totals[m.label].total += data.total;
+                    totals[m.label].todo += data.todo;
+                    totals[m.label].inprogress += data.inprogress;
+                    totals[m.label].done += data.done;
+
+                    // Total due
+                    row.insertCell().innerHTML = data.total || '-';
+                    // ToDo
+                    const todoCell = row.insertCell();
+                    todoCell.innerHTML = data.todo || '-';
+                    todoCell.style.color = data.todo > 0 ? '#f5576c' : '#999';
+                    // InProgress
+                    const inprogressCell = row.insertCell();
+                    inprogressCell.innerHTML = data.inprogress || '-';
+                    inprogressCell.style.color = data.inprogress > 0 ? '#4facfe' : '#999';
+                    // Done
+                    const doneCell = row.insertCell();
+                    doneCell.innerHTML = data.done || '-';
+                    doneCell.style.color = data.done > 0 ? '#43e97b' : '#999';
+                    // Completion rate
+                    const rateCell = row.insertCell();
+                    if (data.total > 0) {
+                        rateCell.innerHTML = `${completionRate}%`;
+                        rateCell.style.fontWeight = 'bold';
+                        rateCell.style.color = parseFloat(completionRate) >= 75 ? '#388e3c' : parseFloat(completionRate) < 50 ? '#d32f2f' : '#666';
+                    } else {
+                        rateCell.innerHTML = '-';
+                        rateCell.style.color = '#999';
+                    }
+                });
+            });
+
+            // Add total row
+            const totalRow = body.insertRow();
+            totalRow.className = 'total';
+
+            const totalNameCell = totalRow.insertCell(0);
+            totalNameCell.innerHTML = '<strong>總計</strong>';
+
+            months.forEach(m => {
+                const data = totals[m.label];
+                const completionRate = data.total > 0 ? ((data.done / data.total) * 100).toFixed(1) : '0.0';
+
+                totalRow.insertCell().innerHTML = `<strong>${data.total}</strong>`;
+                totalRow.insertCell().innerHTML = `<strong>${data.todo}</strong>`;
+                totalRow.insertCell().innerHTML = `<strong>${data.inprogress}</strong>`;
+                totalRow.insertCell().innerHTML = `<strong>${data.done}</strong>`;
+                totalRow.insertCell().innerHTML = `<strong>${completionRate}%</strong>`;
+            });
+        }
+
+        // Filter DueDate Table
+        function filterDueDateTable() {
+            const searchTerm = document.getElementById('dueDateSearchInput').value.toLowerCase();
+
+            if (!searchTerm || !dueDateData) {
+                // No search term or no data, show all
+                const now = new Date();
+                const months = [];
+                for (let i = 0; i < 3; i++) {
+                    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                    const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                    const displayLabel = i === 0 ? '本月' : i === 1 ? '下月' : '下下月';
+                    months.push({ label, displayLabel });
+                }
+                renderDueDateTable(dueDateData, months, null);
+                return;
+            }
+
+            const filteredSales = allDueDateRows.filter(sales =>
+                sales.toLowerCase().includes(searchTerm)
+            );
+
+            const now = new Date();
+            const months = [];
+            for (let i = 0; i < 3; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                const displayLabel = i === 0 ? '本月' : i === 1 ? '下月' : '下下月';
+                months.push({ label, displayLabel });
+            }
+            renderDueDateTable(dueDateData, months, filteredSales);
+        }
+
+        // Tab switching function
+        function switchTab(tabName) {
+            // Hide all tabs
+            const allTabs = document.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active state from all buttons
+            const allButtons = document.querySelectorAll('.tab-button');
+            allButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+
+            // Set corresponding button as active
+            event.target.classList.add('active');
+        }
+
+        function downloadPDF() {
+            window.print();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Ignore everything
+*
+
+# Except these files
+!jira_dashboard.html
+!sample.csv
+!README.md
+!.gitignore
