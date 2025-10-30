@@ -29,13 +29,15 @@ A powerful, interactive dashboard for analyzing Jira project data with advanced 
 ## 🚀 Quick Start
 
 ### 1. Download
-Simply download `jira_dashboard.html` - it's a standalone file with no dependencies!
+Simply download `index.html` - it's a standalone file with no dependencies!
 
 ### 2. Open
 Open the HTML file in any modern web browser (Chrome, Firefox, Edge, Safari).
 
+**Or use GitHub Pages**: https://whfan0827.github.io/jira-dashboard/
+
 ### 3. Upload CSV
-Click "上傳 CSV" and select your Jira export CSV file.
+Click "Upload CSV" and select your Jira export CSV file.
 
 ### 4. Analyze
 Switch between tabs, set KPIs, apply filters, and export reports!
@@ -70,14 +72,14 @@ The dashboard automatically classifies Jira statuses into three categories:
 ## 💡 Usage Tips
 
 ### Setting KPIs
-1. **Individual KPI**: Click the number in the "KPI目標" column for any person
-2. **Global KPI**: Use the KPI input at the top and click "套用全部"
+1. **Individual KPI**: Click the number in the "KPI Target" column for any person
+2. **Global KPI**: Use the KPI input at the top and click "Apply to All"
 3. **Presales KPI**: Optional - leave blank to hide achievement rate
 
 ### Filtering Data
 - Use the search box to filter by name or team
 - Click column headers to sort ascending/descending
-- Adjust "顯示" dropdown to change page size
+- Adjust "Show" dropdown to change page size
 
 ### Exporting Reports
 - **PDF**: Exports only the currently visible tab with current filters applied

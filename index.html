@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jira Sales Dashboard</title>
+    <title>Jira Dashboard - Sales & Presales Analytics</title>
     <style>
         * {
             margin: 0;
@@ -627,22 +627,22 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Jira Sales Dashboard</h1>
-        <p class="subtitle">上傳 Jira CSV 文件即可生成分析報告</p>
+        <h1>📊 Jira Dashboard</h1>
+        <p class="subtitle">Upload Jira CSV file to generate analytics report</p>
 
         <div class="upload-section" id="uploadSection">
             <span class="upload-icon">📤</span>
             <label for="csvFile">
-                <span class="upload-btn">上傳 CSV</span>
+                <span class="upload-btn">Upload CSV</span>
             </label>
             <input type="file" id="csvFile" accept=".csv">
-            <div class="file-name" id="fileName">選擇文件或拖放到此處</div>
+            <div class="file-name" id="fileName">Select file or drag and drop here</div>
 
             <div class="kpi-setting-inline">
                 <label>🎯 KPI:</label>
                 <input type="number" id="globalKPI" value="5" min="1" max="50">
-                <span>個/人</span>
-                <button class="kpi-apply-btn" onclick="applyGlobalKPI()">套用全部</button>
+                <span>cases/person</span>
+                <button class="kpi-apply-btn" onclick="applyGlobalKPI()">Apply to All</button>
             </div>
         </div>
 
@@ -655,58 +655,58 @@
             <div class="section">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-label">總案件數</div>
+                        <div class="stat-label">Total Cases</div>
                         <div class="stat-value" id="totalCases">0</div>
                     </div>
                     <div class="stat-card todo">
-                        <div class="stat-label">待辦 (ToDo)</div>
+                        <div class="stat-label">To Do</div>
                         <div class="stat-value" id="todoCount">0</div>
                         <div class="stat-percent" id="todoPercent">0%</div>
                     </div>
                     <div class="stat-card inprogress">
-                        <div class="stat-label">進行中 (InProgress)</div>
+                        <div class="stat-label">In Progress</div>
                         <div class="stat-value" id="inprogressCount">0</div>
                         <div class="stat-percent" id="inprogressPercent">0%</div>
                     </div>
                     <div class="stat-card done">
-                        <div class="stat-label">已完成 (Done)</div>
+                        <div class="stat-label">Completed</div>
                         <div class="stat-value" id="doneCount">0</div>
                         <div class="stat-percent" id="donePercent">0%</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab 按鈕 -->
+            <!-- Tab Buttons -->
             <div class="tabs">
                 <button class="tab-button active" onclick="switchTab('sales')">
-                    📊 銷售人員統計
+                    📊 Sales Statistics
                 </button>
                 <button class="tab-button" onclick="switchTab('presales')">
-                    🎯 Presales統計
+                    🎯 Presales Statistics
                 </button>
                 <button class="tab-button" onclick="switchTab('duedate')">
-                    📅 近三個月案件到期狀況
+                    📅 Due Date Summary (3 Months)
                 </button>
             </div>
 
-            <!-- 分頁 1：銷售人員統計 -->
+            <!-- Tab 1: Sales Statistics -->
             <div id="tab-sales" class="tab-content active">
                 <div class="section">
-                    <h2 class="section-title">📋 銷售人員統計表</h2>
+                    <h2 class="section-title">📋 Sales Statistics</h2>
 
                     <div class="table-controls">
                         <div class="search-box">
-                            <input type="text" id="searchInput" placeholder="🔍 搜尋部門或銷售人員..." onkeyup="filterTable()">
+                            <input type="text" id="searchInput" placeholder="🔍 Search team or sales person..." onkeyup="filterTable()">
                         </div>
                         <div class="page-size">
-                            <span>顯示:</span>
+                            <span>Show:</span>
                             <select id="pageSizeSelect" onchange="changePageSize()">
                                 <option value="10">10</option>
                                 <option value="30">30</option>
                                 <option value="50">50</option>
-                                <option value="all">全部</option>
+                                <option value="all">All</option>
                             </select>
-                            <span>筆</span>
+                            <span>entries</span>
                         </div>
                     </div>
 
@@ -714,15 +714,15 @@
                         <table id="reportTable">
                             <thead>
                                 <tr>
-                                    <th class="sortable" onclick="sortTable(0)">部門</th>
-                                    <th class="sortable" onclick="sortTable(1)">銷售人員</th>
-                                    <th class="sortable" onclick="sortTable(2)">待辦</th>
-                                    <th class="sortable" onclick="sortTable(3)">進行中</th>
-                                    <th class="sortable" onclick="sortTable(4)">已完成</th>
-                                    <th class="sortable" onclick="sortTable(5)">小計</th>
-                                    <th class="sortable" onclick="sortTable(6)">完成率</th>
-                                    <th class="sortable" onclick="sortTable(7)">KPI目標</th>
-                                    <th class="sortable" onclick="sortTable(8)">達成率</th>
+                                    <th class="sortable" onclick="sortTable(0)">Team</th>
+                                    <th class="sortable" onclick="sortTable(1)">Sales Person</th>
+                                    <th class="sortable" onclick="sortTable(2)">To Do</th>
+                                    <th class="sortable" onclick="sortTable(3)">In Progress</th>
+                                    <th class="sortable" onclick="sortTable(4)">Completed</th>
+                                    <th class="sortable" onclick="sortTable(5)">Subtotal</th>
+                                    <th class="sortable" onclick="sortTable(6)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortTable(7)">KPI Target</th>
+                                    <th class="sortable" onclick="sortTable(8)">Achievement Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="reportBody">
@@ -732,24 +732,24 @@
                 </div>
             </div>
 
-            <!-- 分頁 2：Presales 統計 -->
+            <!-- Tab 2: Presales Statistics -->
             <div id="tab-presales" class="tab-content">
                 <div class="section">
-                    <h2 class="section-title">🎯 Presales 統計表</h2>
+                    <h2 class="section-title">🎯 Presales Statistics</h2>
 
                     <div class="table-controls">
                         <div class="search-box">
-                            <input type="text" id="presalesSearchInput" placeholder="🔍 搜尋 Presales..." onkeyup="filterPresalesTable()">
+                            <input type="text" id="presalesSearchInput" placeholder="🔍 Search presales..." onkeyup="filterPresalesTable()">
                         </div>
                         <div class="page-size">
-                            <span>顯示:</span>
+                            <span>Show:</span>
                             <select id="presalesPageSizeSelect" onchange="changePresalesPageSize()">
                                 <option value="10">10</option>
                                 <option value="30">30</option>
                                 <option value="50">50</option>
-                                <option value="all">全部</option>
+                                <option value="all">All</option>
                             </select>
-                            <span>筆</span>
+                            <span>entries</span>
                         </div>
                     </div>
 
@@ -758,13 +758,13 @@
                             <thead>
                                 <tr>
                                     <th class="sortable" onclick="sortPresalesTable(0)">Presales</th>
-                                    <th class="sortable" onclick="sortPresalesTable(1)">待辦</th>
-                                    <th class="sortable" onclick="sortPresalesTable(2)">進行中</th>
-                                    <th class="sortable" onclick="sortPresalesTable(3)">已完成</th>
-                                    <th class="sortable" onclick="sortPresalesTable(4)">小計</th>
-                                    <th class="sortable" onclick="sortPresalesTable(5)">完成率</th>
-                                    <th class="sortable" onclick="sortPresalesTable(6)">KPI目標</th>
-                                    <th class="sortable" onclick="sortPresalesTable(7)">達成率</th>
+                                    <th class="sortable" onclick="sortPresalesTable(1)">To Do</th>
+                                    <th class="sortable" onclick="sortPresalesTable(2)">In Progress</th>
+                                    <th class="sortable" onclick="sortPresalesTable(3)">Completed</th>
+                                    <th class="sortable" onclick="sortPresalesTable(4)">Subtotal</th>
+                                    <th class="sortable" onclick="sortPresalesTable(5)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortPresalesTable(6)">KPI Target</th>
+                                    <th class="sortable" onclick="sortPresalesTable(7)">Achievement Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="presalesReportBody">
@@ -774,14 +774,14 @@
                 </div>
             </div>
 
-            <!-- 分頁 3：近三個月案件到期狀況 -->
+            <!-- Tab 3: Due Date Summary -->
             <div id="tab-duedate" class="tab-content">
                 <div class="section">
-                    <h2 class="section-title">📅 近三個月案件到期狀況</h2>
+                    <h2 class="section-title">📅 Due Date Summary (Next 3 Months)</h2>
 
                     <div class="table-controls">
                         <div class="search-box">
-                            <input type="text" id="dueDateSearchInput" placeholder="🔍 搜尋銷售人員..." onkeyup="filterDueDateTable()">
+                            <input type="text" id="dueDateSearchInput" placeholder="🔍 Search sales person..." onkeyup="filterDueDateTable()">
                         </div>
                     </div>
 
@@ -795,8 +795,8 @@
             </div>
 
             <div class="action-buttons">
-                <button class="download-btn" onclick="downloadExcel()">⬇ 下載 Excel（全部）</button>
-                <button class="download-btn" onclick="downloadPDF()">⬇ 下載 PDF（當前顯示）</button>
+                <button class="download-btn" onclick="downloadExcel()">⬇ Download Excel (All Data)</button>
+                <button class="download-btn" onclick="downloadPDF()">⬇ Download PDF (Current View)</button>
             </div>
         </div>
 
@@ -871,7 +871,7 @@
         function setKPITarget(sales, target) {
             const newTarget = parseInt(target);
             if (newTarget < 1 || newTarget > 50) {
-                alert('請輸入 1-50 之間的數字');
+                alert('Please enter a number between 1-50');
                 return;
             }
 
@@ -907,13 +907,13 @@
         function applyGlobalKPI() {
             const globalValue = parseInt(document.getElementById('globalKPI').value);
             if (globalValue < 1 || globalValue > 50) {
-                alert('請輸入 1-50 之間的數字');
+                alert('Please enter a number between 1-50');
                 return;
             }
 
             // Apply to all existing sales
             Object.keys(analyzedData).forEach(sales => {
-                if (sales !== '未指派') {  // Don't set KPI for unassigned
+                if (sales !== 'Unassigned') {  // Don't set KPI for unassigned
                     kpiTargets[sales] = globalValue;
                 }
             });
@@ -923,7 +923,7 @@
             // Update all rows with new KPI targets and recalculate achievement rates
             const totalRow = allRows.pop();  // Remove total row temporarily
             allRows.forEach(row => {
-                if (row.sales !== '未指派') {
+                if (row.sales !== 'Unassigned') {
                     row.kpiTarget = globalValue;
                     row.achievementRate = parseFloat(calculateAchievementRate(row.done, globalValue));
                 }
@@ -945,7 +945,7 @@
                 renderTable();
             }
 
-            alert(`已將所有人員的 KPI 目標設定為 ${globalValue}`);
+            alert(`KPI target has been set to ${globalValue} for all personnel`);
         }
 
         // Calculate achievement rate
@@ -1096,7 +1096,7 @@
                 let team = (row['Custom field (MMPJ_MCI_SalesTeamID)'] || '').trim();
 
                 if (!sales) {
-                    sales = '未指派';
+                    sales = 'Unassigned';
                     team = '';
                 }
 
@@ -1135,15 +1135,15 @@
                 document.getElementById('todoCount').innerHTML =
                     `${stats.todo} <small>/ ${originalStats.todo}</small>`;
                 document.getElementById('todoPercent').innerHTML =
-                    `${(stats.todo * 100 / totalCases || 0).toFixed(1)}% <small>(全部: ${(originalStats.todo * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+                    `${(stats.todo * 100 / totalCases || 0).toFixed(1)}% <small>(All: ${(originalStats.todo * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
                 document.getElementById('inprogressCount').innerHTML =
                     `${stats.inProgress} <small>/ ${originalStats.inProgress}</small>`;
                 document.getElementById('inprogressPercent').innerHTML =
-                    `${(stats.inProgress * 100 / totalCases || 0).toFixed(1)}% <small>(全部: ${(originalStats.inProgress * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+                    `${(stats.inProgress * 100 / totalCases || 0).toFixed(1)}% <small>(All: ${(originalStats.inProgress * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
                 document.getElementById('doneCount').innerHTML =
                     `${stats.done} <small>/ ${originalStats.done}</small>`;
                 document.getElementById('donePercent').innerHTML =
-                    `${(stats.done * 100 / totalCases || 0).toFixed(1)}% <small>(全部: ${(originalStats.done * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+                    `${(stats.done * 100 / totalCases || 0).toFixed(1)}% <small>(All: ${(originalStats.done * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
             } else {
                 // Show original stats
                 document.getElementById('totalCases').textContent = totalCases;
@@ -1221,7 +1221,7 @@
 
             allRows.push({
                 team: '',
-                sales: '總計',
+                sales: 'Total',
                 todo: totalTodo,
                 inProgress: totalInProgress,
                 done: totalDone,
@@ -1261,7 +1261,7 @@
                 const filterIndicator = document.getElementById('filterIndicator');
                 const filterText = document.getElementById('filterText');
                 filterIndicator.classList.add('show');
-                filterText.textContent = `篩選結果：顯示 ${visibleDataRows.length} 人，共 ${originalStats.totalPeople} 人`;
+                filterText.textContent = `Filter Results: Showing ${visibleDataRows.length} of ${originalStats.totalPeople} people`;
             } else {
                 updateStatsCards({
                     todo: originalStats.todo,
@@ -1285,7 +1285,7 @@
 
                 displayRows[totalRowIndex] = {
                     team: '',
-                    sales: '總計',
+                    sales: 'Total',
                     todo: filteredStats.todo,
                     inProgress: filteredStats.inProgress,
                     done: filteredStats.done,
@@ -1312,7 +1312,7 @@
                         <td><strong>${rowData.subtotal}</strong></td>
                         <td><strong>${rowData.completionRate}%</strong></td>
                         <td><strong>-</strong></td>
-                        <td class="${achievementClass}"><strong>平均 ${rowData.achievementRate}%</strong></td>
+                        <td class="${achievementClass}"><strong>Average ${rowData.achievementRate}%</strong></td>
                     `;
                 } else {
                     const completionClass = rowData.completionRate == 0 ? 'zero-completion' :
@@ -1450,7 +1450,7 @@
 
             // Sheet 1: Sales Statistics
             const salesSheetData = [
-                ['部門', '銷售人員', '待辦', '進行中', '已完成', '小計', '完成率', 'KPI目標', '達成率']
+                ['Team', 'Sales Person', 'To Do', 'In Progress', 'Completed', 'Subtotal', 'Completion Rate', 'KPI Target', 'Achievement Rate']
             ];
 
             allRows.forEach(row => {
@@ -1467,7 +1467,7 @@
 
             // Sheet 2: Presales Statistics
             const presalesSheetData = [
-                ['Presales', '待辦', '進行中', '已完成', '小計', '完成率', 'KPI目標', '達成率']
+                ['Presales', 'To Do', 'In Progress', 'Completed', 'Subtotal', 'Completion Rate', 'KPI Target', 'Achievement Rate']
             ];
 
             allPresalesRows.forEach(row => {
@@ -1495,9 +1495,9 @@
             const ws2 = XLSX.utils.aoa_to_sheet(presalesSheetData);
             const ws3 = XLSX.utils.aoa_to_sheet(dueDateSheetData);
 
-            XLSX.utils.book_append_sheet(wb, ws1, '銷售人員統計');
-            XLSX.utils.book_append_sheet(wb, ws2, 'Presales統計');
-            XLSX.utils.book_append_sheet(wb, ws3, '近三個月案件到期狀況');
+            XLSX.utils.book_append_sheet(wb, ws1, 'Sales Statistics');
+            XLSX.utils.book_append_sheet(wb, ws2, 'Presales Statistics');
+            XLSX.utils.book_append_sheet(wb, ws3, 'Due Date Summary');
 
             XLSX.writeFile(wb, `Jira_Dashboard_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
@@ -1519,12 +1519,12 @@
                     presalesList = presalesList.filter(p => p && p.trim());
 
                     if (presalesList.length === 0) {
-                        presalesList = ['未指派'];
+                        presalesList = ['Unassigned'];
                     }
                 } else {
                     // If not array (old format or single value)
                     let presales = (presalesList || '').trim().replace(/^﻿/, '');
-                    presalesList = presales ? [presales] : ['未指派'];
+                    presalesList = presales ? [presales] : ['Unassigned'];
                 }
 
                 // Count for each Presales person
@@ -1560,7 +1560,7 @@
             } else {
                 const newTarget = parseInt(target);
                 if (newTarget < 1 || newTarget > 50) {
-                    alert('請輸入 1-50 之間的數字');
+                    alert('Please enter a number between 1-50');
                     return;
                 }
                 presalesKpiTargets[presales] = newTarget;
@@ -1624,7 +1624,7 @@
                 const kpiTarget = getPresalesKPITarget(presales);
                 const achievementRate = kpiTarget ? calculateAchievementRate(stats.Done, kpiTarget) : null;
 
-                if (presales === '未指派' && subtotal === 0) {
+                if (presales === 'Unassigned' && subtotal === 0) {
                     return;
                 }
 
@@ -1649,7 +1649,7 @@
 
             allPresalesRows.push({
                 team: '',
-                presales: '總計',
+                presales: 'Total',
                 todo: totalTodo,
                 inProgress: totalInProgress,
                 done: totalDone,
@@ -1679,7 +1679,7 @@
                 if (rowData.isTotal) {
                     row.className = 'total';
                     const achievementHTML = rowData.achievementRate !== null
-                        ? `<strong>平均 ${rowData.achievementRate}%</strong>`
+                        ? `<strong>Average ${rowData.achievementRate}%</strong>`
                         : '<strong>-</strong>';
                     const achievementClass = rowData.achievementRate !== null ? getAchievementClass(rowData.achievementRate) : '';
 
@@ -1723,7 +1723,7 @@
                             <input type="number"
                                    class="kpi-input"
                                    value="${kpiInputValue}"
-                                   placeholder="選填"
+                                   placeholder="Optional"
                                    min="1"
                                    max="50"
                                    onchange="setPresalesKPITarget('${rowData.presales}', this.value)">
@@ -1832,7 +1832,7 @@
             for (let i = 0; i < 3; i++) {
                 const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                const displayLabel = i === 0 ? '本月' : i === 1 ? '下月' : '下下月';
+                const displayLabel = i === 0 ? 'This Month' : i === 1 ? 'Next Month' : 'Month After';
                 months.push({ label, displayLabel });
             }
 
@@ -1843,7 +1843,7 @@
                 // Get sales person
                 let sales = item['Custom field (MMPJ_MCI_Sales)'] || '';
                 sales = sales.trim().replace(/^﻿/, '');
-                if (!sales) sales = '未指派';
+                if (!sales) sales = 'Unassigned';
 
                 // Get Due Date
                 const dueDate = item['Due date'] || item['DueDate'] || item['Due Date'] || '';
@@ -1899,13 +1899,13 @@
             body.innerHTML = "";
 
             // Build header
-            let headerHTML = '<tr><th rowspan="2" style="vertical-align: middle;">銷售人員</th>';
+            let headerHTML = '<tr><th rowspan="2" style="vertical-align: middle;">Sales Person</th>';
             months.forEach(m => {
                 headerHTML += `<th colspan="5" style="text-align: center;">${m.label} (${m.displayLabel})</th>`;
             });
             headerHTML += '</tr><tr>';
             months.forEach(() => {
-                headerHTML += '<th>到期總數</th><th>待辦</th><th>進行中</th><th>已完成</th><th>完成率</th>';
+                headerHTML += '<th>Total Due</th><th>To Do</th><th>In Progress</th><th>Completed</th><th>Completion Rate</th>';
             });
             headerHTML += '</tr>';
             head.innerHTML = headerHTML;
@@ -1918,7 +1918,7 @@
                 cell.style.textAlign = 'center';
                 cell.style.padding = '40px';
                 cell.style.color = '#999';
-                cell.innerHTML = '近三個月內無到期案件';
+                cell.innerHTML = 'No cases due in the next 3 months';
                 return;
             }
 
@@ -1935,7 +1935,7 @@
             displaySales.forEach(sales => {
                 // Check if has any due cases
                 const hasData = months.some(m => summary[sales][m.label].total > 0);
-                if (sales === '未指派' && !hasData) return;
+                if (sales === 'Unassigned' && !hasData) return;
 
                 const row = body.insertRow();
 
@@ -1987,7 +1987,7 @@
             totalRow.className = 'total';
 
             const totalNameCell = totalRow.insertCell(0);
-            totalNameCell.innerHTML = '<strong>總計</strong>';
+            totalNameCell.innerHTML = '<strong>Total</strong>';
 
             months.forEach(m => {
                 const data = totals[m.label];
@@ -2012,7 +2012,7 @@
                 for (let i = 0; i < 3; i++) {
                     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
                     const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                    const displayLabel = i === 0 ? '本月' : i === 1 ? '下月' : '下下月';
+                    const displayLabel = i === 0 ? 'This Month' : i === 1 ? 'Next Month' : 'Month After';
                     months.push({ label, displayLabel });
                 }
                 renderDueDateTable(dueDateData, months, null);
@@ -2028,7 +2028,7 @@
             for (let i = 0; i < 3; i++) {
                 const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                const displayLabel = i === 0 ? '本月' : i === 1 ? '下月' : '下下月';
+                const displayLabel = i === 0 ? 'This Month' : i === 1 ? 'Next Month' : 'Month After';
                 months.push({ label, displayLabel });
             }
             renderDueDateTable(dueDateData, months, filteredSales);
