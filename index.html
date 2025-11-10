@@ -83,9 +83,9 @@
         .kpi-setting-inline {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding-left: 20px;
-            margin-left: 20px;
+            gap: 8px;
+            padding-left: 15px;
+            margin-left: 15px;
             border-left: 2px solid #ddd;
         }
 
@@ -136,6 +136,7 @@
             align-items: center;
             margin-bottom: 15px;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .search-box {
@@ -650,13 +651,6 @@
             </label>
             <input type="file" id="csvFile" accept=".csv">
             <div class="file-name" id="fileName">Select file or drag and drop here</div>
-
-            <div class="kpi-setting-inline">
-                <label>🎯 KPI:</label>
-                <input type="number" id="globalKPI" value="5" min="1" max="50">
-                <span>cases/person</span>
-                <button class="kpi-apply-btn" onclick="applyGlobalKPI()">Apply to All</button>
-            </div>
         </div>
 
         <div class="results" id="results">
@@ -712,6 +706,9 @@
                 <button class="tab-button" onclick="switchTab('presales')">
                     🎯 Presales Statistics
                 </button>
+                <button class="tab-button" onclick="switchTab('techsupport')">
+                    🛠️ Technical Support Statistics
+                </button>
                 <button class="tab-button" onclick="switchTab('duedate')">
                     📅 Due Date Summary (3 Months)
                 </button>
@@ -725,6 +722,12 @@
                     <div class="table-controls">
                         <div class="search-box">
                             <input type="text" id="searchInput" placeholder="🔍 Search team or sales person..." onkeyup="filterTable()">
+                        </div>
+                        <div class="kpi-setting-inline">
+                            <label>🎯 KPI:</label>
+                            <input type="number" id="salesGlobalKPI" value="5" min="1" max="50">
+                            <span>cases/person</span>
+                            <button class="kpi-apply-btn" onclick="applySalesKPI()">Apply to All</button>
                         </div>
                         <div class="page-size">
                             <span>Show:</span>
@@ -772,6 +775,12 @@
                         <div class="search-box">
                             <input type="text" id="presalesSearchInput" placeholder="🔍 Search presales..." onkeyup="filterPresalesTable()">
                         </div>
+                        <div class="kpi-setting-inline">
+                            <label>🎯 KPI:</label>
+                            <input type="number" id="presalesGlobalKPI" value="8" min="1" max="50">
+                            <span>cases/person</span>
+                            <button class="kpi-apply-btn" onclick="applyPresalesKPI()">Apply to All</button>
+                        </div>
                         <div class="page-size">
                             <span>Show:</span>
                             <select id="presalesPageSizeSelect" onchange="changePresalesPageSize()">
@@ -805,7 +814,55 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Due Date Summary -->
+            <!-- Tab 3: Technical Support Statistics -->
+            <div id="tab-techsupport" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">🛠️ Technical Support Statistics</h2>
+
+                    <div class="table-controls">
+                        <div class="search-box">
+                            <input type="text" id="techsupportSearchInput" placeholder="🔍 Search technical support..." onkeyup="filterTechSupportTable()">
+                        </div>
+                        <div class="kpi-setting-inline">
+                            <label>🎯 KPI:</label>
+                            <input type="number" id="techsupportGlobalKPI" value="8" min="1" max="50">
+                            <span>cases/person</span>
+                            <button class="kpi-apply-btn" onclick="applyTechSupportKPI()">Apply to All</button>
+                        </div>
+                        <div class="page-size">
+                            <span>Show:</span>
+                            <select id="techsupportPageSizeSelect" onchange="changeTechSupportPageSize()">
+                                <option value="10">10</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="all">All</option>
+                            </select>
+                            <span>entries</span>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table id="techsupportReportTable">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="sortTechSupportTable(0)">Technical Support</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(1)">To Do</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(2)">In Progress</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(3)">Completed</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(4)">Subtotal</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(5)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(6)">KPI Target</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(7)">Achievement Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="techsupportReportBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Due Date Summary -->
             <div id="tab-duedate" class="tab-content">
                 <div class="section">
                     <h2 class="section-title">📅 Due Date Summary (Next 3 Months)</h2>
@@ -850,6 +907,13 @@
         let presalesPageSize = 10;
         let presalesKpiTargets = {};  // Store individual Presales KPI targets
 
+        // Technical Support related variables
+        let techsupportData = null;
+        let allTechSupportRows = [];
+        let techsupportSort = { column: -1, ascending: true };
+        let techsupportPageSize = 10;
+        let techsupportKpiTargets = {};  // Store individual Technical Support KPI targets
+
         // DueDate related variables
         let dueDateData = null;
         let allDueDateRows = [];
@@ -881,6 +945,14 @@
                     presalesKpiTargets = {};
                 }
             }
+            const techsupportSaved = localStorage.getItem('jira_techsupport_kpi_targets');
+            if (techsupportSaved) {
+                try {
+                    techsupportKpiTargets = JSON.parse(techsupportSaved);
+                } catch (e) {
+                    techsupportKpiTargets = {};
+                }
+            }
         }
 
         // Save KPI targets to localStorage
@@ -891,6 +963,11 @@
         // Save Presales KPI targets to localStorage
         function savePresalesKPITargets() {
             localStorage.setItem('jira_presales_kpi_targets', JSON.stringify(presalesKpiTargets));
+        }
+
+        // Save Technical Support KPI targets to localStorage
+        function saveTechSupportKPITargets() {
+            localStorage.setItem('jira_techsupport_kpi_targets', JSON.stringify(techsupportKpiTargets));
         }
 
         // Get KPI target for a sales person (default 5)
@@ -935,8 +1012,8 @@
         }
 
         // Apply global KPI to all sales
-        function applyGlobalKPI() {
-            const globalValue = parseInt(document.getElementById('globalKPI').value);
+        function applySalesKPI() {
+            const globalValue = parseInt(document.getElementById('salesGlobalKPI').value);
             if (globalValue < 1 || globalValue > 50) {
                 alert('Please enter a number between 1-50');
                 return;
@@ -976,7 +1053,103 @@
                 renderTable();
             }
 
-            alert(`KPI target has been set to ${globalValue} for all personnel`);
+            alert(`KPI target has been set to ${globalValue} for all sales personnel`);
+        }
+
+        // Apply global KPI to all presales
+        function applyPresalesKPI() {
+            const globalValue = parseInt(document.getElementById('presalesGlobalKPI').value);
+            if (globalValue < 1 || globalValue > 50) {
+                alert('Please enter a number between 1-50');
+                return;
+            }
+
+            // Apply to all existing presales
+            if (presalesData) {
+                Object.keys(presalesData).forEach(presales => {
+                    if (presales !== 'Unassigned') {  // Don't set KPI for unassigned
+                        presalesKpiTargets[presales] = globalValue;
+                    }
+                });
+            }
+
+            savePresalesKPITargets();
+
+            // Update all rows with new KPI targets and recalculate achievement rates
+            const totalRow = allPresalesRows.pop();  // Remove total row temporarily
+            allPresalesRows.forEach(row => {
+                if (row.presales !== 'Unassigned') {
+                    row.kpiTarget = globalValue;
+                    row.achievementRate = parseFloat(calculateAchievementRate(row.done, globalValue));
+                }
+            });
+
+            // Recalculate average achievement rate for total row (only for those with KPI set)
+            const rowsWithKPI = allPresalesRows.filter(row => row.kpiTarget !== null && row.achievementRate !== null);
+            const avgAchievementRate = rowsWithKPI.length > 0
+                ? (rowsWithKPI.reduce((sum, row) => sum + row.achievementRate, 0) / rowsWithKPI.length).toFixed(1)
+                : null;
+            totalRow.achievementRate = avgAchievementRate ? parseFloat(avgAchievementRate) : null;
+
+            allPresalesRows.push(totalRow);  // Add total row back
+
+            // Check if search is active
+            const searchTerm = document.getElementById('presalesSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterPresalesTable();
+            } else {
+                renderPresalesTable();
+            }
+
+            alert(`KPI target has been set to ${globalValue} for all presales personnel`);
+        }
+
+        // Apply global KPI to all technical support
+        function applyTechSupportKPI() {
+            const globalValue = parseInt(document.getElementById('techsupportGlobalKPI').value);
+            if (globalValue < 1 || globalValue > 50) {
+                alert('Please enter a number between 1-50');
+                return;
+            }
+
+            // Apply to all existing technical support
+            if (techsupportData) {
+                Object.keys(techsupportData).forEach(techsupport => {
+                    if (techsupport !== 'Unassigned') {  // Don't set KPI for unassigned
+                        techsupportKpiTargets[techsupport] = globalValue;
+                    }
+                });
+            }
+
+            saveTechSupportKPITargets();
+
+            // Update all rows with new KPI targets and recalculate achievement rates
+            const totalRow = allTechSupportRows.pop();  // Remove total row temporarily
+            allTechSupportRows.forEach(row => {
+                if (row.techsupport !== 'Unassigned') {
+                    row.kpiTarget = globalValue;
+                    row.achievementRate = parseFloat(calculateAchievementRate(row.done, globalValue));
+                }
+            });
+
+            // Recalculate average achievement rate for total row (only for those with KPI set)
+            const rowsWithKPI = allTechSupportRows.filter(row => row.kpiTarget !== null && row.achievementRate !== null);
+            const avgAchievementRate = rowsWithKPI.length > 0
+                ? (rowsWithKPI.reduce((sum, row) => sum + row.achievementRate, 0) / rowsWithKPI.length).toFixed(1)
+                : null;
+            totalRow.achievementRate = avgAchievementRate ? parseFloat(avgAchievementRate) : null;
+
+            allTechSupportRows.push(totalRow);  // Add total row back
+
+            // Check if search is active
+            const searchTerm = document.getElementById('techsupportSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterTechSupportTable();
+            } else {
+                renderTechSupportTable();
+            }
+
+            alert(`KPI target has been set to ${globalValue} for all technical support personnel`);
         }
 
         // Calculate achievement rate
@@ -1045,7 +1218,7 @@
                 const values = parseCSVLine(lines[i]);
                 const row = {};
 
-                // Handle duplicate column names (especially MMPJ_MCI_PS)
+                // Handle duplicate column names (especially MMPJ_MCI_PS and MMPJ_MCI_TS)
                 const headerCounts = {};
                 headers.forEach((header, index) => {
                     if (!headerCounts[header]) {
@@ -1053,7 +1226,7 @@
                     }
 
                     // If it's a duplicate field, store in array
-                    if (header === 'Custom field (MMPJ_MCI_PS)') {
+                    if (header === 'Custom field (MMPJ_MCI_PS)' || header === 'Custom field (MMPJ_MCI_TS)') {
                         if (!row[header]) {
                             row[header] = [];
                         }
@@ -1164,6 +1337,10 @@
             // Process Presales data
             const presalesInfo = processPresalesData(data);
             displayPresalesResults(presalesInfo);
+
+            // Process Technical Support data
+            const techsupportInfo = processTechSupportData(data);
+            displayTechSupportResults(techsupportInfo);
 
             // Process DueDate data
             displayDueDateSummary(data);
@@ -1600,7 +1777,20 @@
                 presalesSheetData.push([row.presales, row.todo, row.inProgress, row.done, row.subtotal, completionRate, kpiTarget, achievementRate]);
             });
 
-            // Sheet 3: DueDate Summary
+            // Sheet 3: Technical Support Statistics
+            const techsupportSheetData = [
+                ['Technical Support', 'To Do', 'In Progress', 'Completed', 'Subtotal', 'Completion Rate', 'KPI Target', 'Achievement Rate']
+            ];
+
+            allTechSupportRows.forEach(row => {
+                const completionRate = row.completionRate + '%';
+                const kpiTarget = row.kpiTarget !== null ? row.kpiTarget : '';
+                const achievementRate = row.achievementRate !== null ? row.achievementRate + '%' : '-';
+
+                techsupportSheetData.push([row.techsupport, row.todo, row.inProgress, row.done, row.subtotal, completionRate, kpiTarget, achievementRate]);
+            });
+
+            // Sheet 4: DueDate Summary
             const dueDateSheetData = [];
             const dueTable = document.getElementById('dueDateSummaryTable');
             if (dueTable) {
@@ -1615,11 +1805,13 @@
             const wb = XLSX.utils.book_new();
             const ws1 = XLSX.utils.aoa_to_sheet(salesSheetData);
             const ws2 = XLSX.utils.aoa_to_sheet(presalesSheetData);
-            const ws3 = XLSX.utils.aoa_to_sheet(dueDateSheetData);
+            const ws3 = XLSX.utils.aoa_to_sheet(techsupportSheetData);
+            const ws4 = XLSX.utils.aoa_to_sheet(dueDateSheetData);
 
             XLSX.utils.book_append_sheet(wb, ws1, 'Sales Statistics');
             XLSX.utils.book_append_sheet(wb, ws2, 'Presales Statistics');
-            XLSX.utils.book_append_sheet(wb, ws3, 'Due Date Summary');
+            XLSX.utils.book_append_sheet(wb, ws3, 'Technical Support');
+            XLSX.utils.book_append_sheet(wb, ws4, 'Due Date Summary');
 
             XLSX.writeFile(wb, `Jira_Dashboard_${new Date().toISOString().slice(0, 10)}.xlsx`);
         }
@@ -1668,9 +1860,9 @@
             return presalesInfo;
         }
 
-        // Get Presales KPI target (default null for optional)
+        // Get Presales KPI target (default 8)
         function getPresalesKPITarget(presales) {
-            return presalesKpiTargets[presales] || null;
+            return presalesKpiTargets[presales] || 8;
         }
 
         // Set Presales KPI target
@@ -1949,6 +2141,334 @@
                 filterPresalesTable();
             } else {
                 renderPresalesTable();
+            }
+        }
+
+        // Process Technical Support Data
+        function processTechSupportData(data) {
+            const techsupportInfo = {};
+
+            data.forEach(row => {
+                const status = (row['Status'] || '').trim();
+                let team = (row['Custom field (MMPJ_MCI_SalesTeamID)'] || '').trim();
+
+                // Get all Technical Support personnel (may be array)
+                let techsupportList = row['Custom field (MMPJ_MCI_TS)'];
+
+                // If it's an array, process each person
+                if (Array.isArray(techsupportList)) {
+                    // Filter empty values
+                    techsupportList = techsupportList.filter(t => t && t.trim());
+
+                    if (techsupportList.length === 0) {
+                        techsupportList = ['Unassigned'];
+                    }
+                } else {
+                    // If not array (old format or single value)
+                    let techsupport = (techsupportList || '').trim().replace(/^﻿/, '');
+                    techsupportList = techsupport ? [techsupport] : ['Unassigned'];
+                }
+
+                // Count for each Technical Support person
+                techsupportList.forEach(techsupport => {
+                    if (!techsupportInfo[techsupport]) {
+                        techsupportInfo[techsupport] = {
+                            team: team,
+                            stats: { ToDo: 0, InProgress: 0, Done: 0 }
+                        };
+                    }
+
+                    const category = classifyStatus(status);
+                    if (category) {
+                        techsupportInfo[techsupport].stats[category]++;
+                    }
+                });
+            });
+
+            return techsupportInfo;
+        }
+
+        // Get Technical Support KPI target (default 8)
+        function getTechSupportKPITarget(techsupport) {
+            return techsupportKpiTargets[techsupport] || 8;
+        }
+
+        // Set Technical Support KPI target
+        function setTechSupportKPITarget(techsupport, target) {
+            if (!target || target === '') {
+                // Remove KPI if empty
+                delete techsupportKpiTargets[techsupport];
+                saveTechSupportKPITargets();
+            } else {
+                const newTarget = parseInt(target);
+                if (newTarget < 1 || newTarget > 50) {
+                    alert('Please enter a number between 1-50');
+                    return;
+                }
+                techsupportKpiTargets[techsupport] = newTarget;
+                saveTechSupportKPITargets();
+            }
+
+            // Update the specific row in allTechSupportRows
+            const totalRow = allTechSupportRows.pop();
+            const rowIndex = allTechSupportRows.findIndex(row => row.techsupport === techsupport);
+            if (rowIndex !== -1) {
+                const kpiTarget = getTechSupportKPITarget(techsupport);
+                allTechSupportRows[rowIndex].kpiTarget = kpiTarget;
+                if (kpiTarget) {
+                    allTechSupportRows[rowIndex].achievementRate = parseFloat(calculateAchievementRate(allTechSupportRows[rowIndex].done, kpiTarget));
+                } else {
+                    allTechSupportRows[rowIndex].achievementRate = null;
+                }
+            }
+
+            allTechSupportRows.push(totalRow);
+
+            // Check if search is active
+            const searchTerm = document.getElementById('techsupportSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterTechSupportTable();
+            } else {
+                renderTechSupportTable();
+            }
+        }
+
+        // Display Technical Support Results
+        function displayTechSupportResults(techsupportInfo) {
+            techsupportData = techsupportInfo;
+
+            // Calculate totals
+            let totalTodo = 0;
+            let totalInProgress = 0;
+            let totalDone = 0;
+
+            Object.values(techsupportInfo).forEach(info => {
+                totalTodo += info.stats.ToDo;
+                totalInProgress += info.stats.InProgress;
+                totalDone += info.stats.Done;
+            });
+
+            const totalCases = totalTodo + totalInProgress + totalDone;
+
+            // Prepare row data
+            allTechSupportRows = [];
+            const sortedTechSupport = Object.keys(techsupportInfo).sort((a, b) => {
+                const subtotalA = techsupportInfo[a].stats.ToDo + techsupportInfo[a].stats.InProgress + techsupportInfo[a].stats.Done;
+                const subtotalB = techsupportInfo[b].stats.ToDo + techsupportInfo[b].stats.InProgress + techsupportInfo[b].stats.Done;
+                return subtotalB - subtotalA;
+            });
+
+            sortedTechSupport.forEach(techsupport => {
+                const info = techsupportInfo[techsupport];
+                const stats = info.stats;
+                const subtotal = stats.ToDo + stats.InProgress + stats.Done;
+                const completionRate = subtotal > 0 ? (stats.Done * 100 / subtotal).toFixed(1) : 0;
+                const kpiTarget = getTechSupportKPITarget(techsupport);
+                const achievementRate = kpiTarget ? calculateAchievementRate(stats.Done, kpiTarget) : null;
+
+                if (techsupport === 'Unassigned' && subtotal === 0) {
+                    return;
+                }
+
+                allTechSupportRows.push({
+                    team: info.team,
+                    techsupport: techsupport,
+                    todo: stats.ToDo,
+                    inProgress: stats.InProgress,
+                    done: stats.Done,
+                    subtotal: subtotal,
+                    completionRate: parseFloat(completionRate),
+                    kpiTarget: kpiTarget,
+                    achievementRate: achievementRate ? parseFloat(achievementRate) : null
+                });
+            });
+
+            // Add total row - calculate average achievement rate (only for those with KPI set)
+            const rowsWithKPI = allTechSupportRows.filter(row => row.kpiTarget !== null && row.achievementRate !== null);
+            const avgAchievementRate = rowsWithKPI.length > 0
+                ? (rowsWithKPI.reduce((sum, row) => sum + row.achievementRate, 0) / rowsWithKPI.length).toFixed(1)
+                : null;
+
+            allTechSupportRows.push({
+                team: '',
+                techsupport: 'Total',
+                todo: totalTodo,
+                inProgress: totalInProgress,
+                done: totalDone,
+                subtotal: totalCases,
+                completionRate: parseFloat((totalDone * 100 / totalCases).toFixed(1)),
+                kpiTarget: null,
+                achievementRate: avgAchievementRate ? parseFloat(avgAchievementRate) : null,
+                isTotal: true
+            });
+
+            renderTechSupportTable();
+        }
+
+        // Render Technical Support Table
+        function renderTechSupportTable(filteredRows = null) {
+            const rows = filteredRows || allTechSupportRows;
+            const tbody = document.getElementById('techsupportReportBody');
+            tbody.innerHTML = '';
+
+            // Separate data rows and total row
+            const dataRows = rows.filter(r => !r.isTotal);
+            const totalRow = rows.find(r => r.isTotal);
+
+            // Determine how many data rows to show (excluding total row)
+            const pageSize = techsupportPageSize === 'all' ? dataRows.length : parseInt(techsupportPageSize);
+            const displayDataRows = dataRows.slice(0, pageSize);
+
+            // Combine data rows with total row (always show total at the end)
+            const displayRows = totalRow ? [...displayDataRows, totalRow] : displayDataRows;
+
+            displayRows.forEach(rowData => {
+                const row = tbody.insertRow();
+
+                if (rowData.isTotal) {
+                    row.className = 'total';
+                    const achievementHTML = rowData.achievementRate !== null
+                        ? `<strong>Average ${rowData.achievementRate}%</strong>`
+                        : '<strong>-</strong>';
+                    const achievementClass = rowData.achievementRate !== null ? getAchievementClass(rowData.achievementRate) : '';
+
+                    row.innerHTML = `
+                        <td><strong>${rowData.techsupport}</strong></td>
+                        <td><strong>${rowData.todo}</strong></td>
+                        <td><strong>${rowData.inProgress}</strong></td>
+                        <td><strong>${rowData.done}</strong></td>
+                        <td><strong>${rowData.subtotal}</strong></td>
+                        <td><strong>${rowData.completionRate}%</strong></td>
+                        <td><strong>-</strong></td>
+                        <td class="${achievementClass}">${achievementHTML}</td>
+                    `;
+                } else {
+                    const completionClass = rowData.completionRate == 0 ? 'zero-completion' :
+                        rowData.completionRate >= 75 ? 'high-completion' : '';
+
+                    const kpiInputValue = rowData.kpiTarget !== null ? rowData.kpiTarget : '';
+                    const achievementHTML = rowData.achievementRate !== null
+                        ? `${rowData.achievementRate}%
+                            <div class="completion-bar">
+                                <div class="completion-fill" style="width: ${Math.min(rowData.achievementRate, 100)}%"></div>
+                            </div>
+                            <small>(${rowData.done}/${rowData.kpiTarget})</small>`
+                        : '-';
+                    const achievementClass = rowData.achievementRate !== null ? getAchievementClass(rowData.achievementRate) : '';
+
+                    row.innerHTML = `
+                        <td><strong>${rowData.techsupport}</strong></td>
+                        <td>${rowData.todo}</td>
+                        <td>${rowData.inProgress}</td>
+                        <td>${rowData.done}</td>
+                        <td><strong>${rowData.subtotal}</strong></td>
+                        <td class="${completionClass}">
+                            ${rowData.completionRate}%
+                            <div class="completion-bar">
+                                <div class="completion-fill" style="width: ${Math.min(rowData.completionRate, 100)}%"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <input type="number"
+                                   class="kpi-input"
+                                   value="${kpiInputValue}"
+                                   placeholder="Optional"
+                                   min="1"
+                                   max="50"
+                                   onchange="setTechSupportKPITarget('${rowData.techsupport}', this.value)">
+                        </td>
+                        <td class="${achievementClass}">
+                            ${achievementHTML}
+                        </td>
+                    `;
+                }
+            });
+        }
+
+        // Filter Technical Support Table
+        function filterTechSupportTable() {
+            const searchTerm = document.getElementById('techsupportSearchInput').value.toLowerCase();
+
+            if (!searchTerm) {
+                renderTechSupportTable(null);
+                return;
+            }
+
+            const filtered = allTechSupportRows.filter(row => {
+                if (row.isTotal) return true;
+                return row.techsupport.toLowerCase().includes(searchTerm);
+            });
+            renderTechSupportTable(filtered);
+        }
+
+        // Sort Technical Support Table
+        function sortTechSupportTable(columnIndex) {
+            const headers = document.querySelectorAll('#techsupportReportTable th.sortable');
+
+            // Determine sort direction
+            if (techsupportSort.column === columnIndex) {
+                techsupportSort.ascending = !techsupportSort.ascending;
+            } else {
+                techsupportSort.column = columnIndex;
+                techsupportSort.ascending = true;
+            }
+
+            // Update header classes
+            headers.forEach((header, index) => {
+                header.classList.remove('sort-asc', 'sort-desc');
+                if (index === columnIndex) {
+                    header.classList.add(techsupportSort.ascending ? 'sort-asc' : 'sort-desc');
+                }
+            });
+
+            // Sort data (exclude total row)
+            const totalRow = allTechSupportRows.pop();
+            const dataRows = allTechSupportRows;
+
+            dataRows.sort((a, b) => {
+                let aVal, bVal;
+
+                switch (columnIndex) {
+                    case 0: aVal = a.techsupport; bVal = b.techsupport; break;
+                    case 1: aVal = a.todo; bVal = b.todo; break;
+                    case 2: aVal = a.inProgress; bVal = b.inProgress; break;
+                    case 3: aVal = a.done; bVal = b.done; break;
+                    case 4: aVal = a.subtotal; bVal = b.subtotal; break;
+                    case 5: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 6: aVal = a.kpiTarget !== null ? a.kpiTarget : -1; bVal = b.kpiTarget !== null ? b.kpiTarget : -1; break;
+                    case 7: aVal = a.achievementRate !== null ? a.achievementRate : -1; bVal = b.achievementRate !== null ? b.achievementRate : -1; break;
+                    default: return 0;
+                }
+
+                if (typeof aVal === 'string') {
+                    return techsupportSort.ascending ?
+                        aVal.localeCompare(bVal, 'zh-TW') :
+                        bVal.localeCompare(aVal, 'zh-TW');
+                } else {
+                    return techsupportSort.ascending ? aVal - bVal : bVal - aVal;
+                }
+            });
+
+            allTechSupportRows = dataRows;
+            allTechSupportRows.push(totalRow);
+
+            const searchTerm = document.getElementById('techsupportSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterTechSupportTable();
+            } else {
+                renderTechSupportTable();
+            }
+        }
+
+        // Change Technical Support Page Size
+        function changeTechSupportPageSize() {
+            techsupportPageSize = document.getElementById('techsupportPageSizeSelect').value;
+
+            const searchTerm = document.getElementById('techsupportSearchInput').value.toLowerCase();
+            if (searchTerm) {
+                filterTechSupportTable();
+            } else {
+                renderTechSupportTable();
             }
         }
 
