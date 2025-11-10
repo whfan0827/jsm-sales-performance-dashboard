@@ -1790,15 +1790,72 @@
                 techsupportSheetData.push([row.techsupport, row.todo, row.inProgress, row.done, row.subtotal, completionRate, kpiTarget, achievementRate]);
             });
 
-            // Sheet 4: DueDate Summary
+            // Sheet 4: DueDate Summary - Export full dataset from dueDateData
             const dueDateSheetData = [];
-            const dueTable = document.getElementById('dueDateSummaryTable');
-            if (dueTable) {
-                const dueRows = dueTable.querySelectorAll('tr');
-                dueRows.forEach(row => {
-                    const cells = Array.from(row.cells).map(c => c.textContent.trim());
-                    dueDateSheetData.push(cells);
+
+            if (dueDateData && Object.keys(dueDateData).length > 0) {
+                // Build header
+                const now = new Date();
+                const months = [];
+                for (let i = 0; i < 3; i++) {
+                    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                    const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                    const displayLabel = i === 0 ? 'This Month' : i === 1 ? 'Next Month' : 'Month After';
+                    months.push({ label, displayLabel });
+                }
+
+                // Header row 1
+                const header1 = ['Sales Person'];
+                months.forEach(m => {
+                    header1.push(`${m.label} (${m.displayLabel})`, '', '', '', '');
                 });
+                dueDateSheetData.push(header1);
+
+                // Header row 2
+                const header2 = [''];
+                months.forEach(() => {
+                    header2.push('Total Due', 'To Do', 'In Progress', 'Completed', 'Completion Rate');
+                });
+                dueDateSheetData.push(header2);
+
+                // Data rows - sort by sales name
+                const allSales = Object.keys(dueDateData).sort();
+                const totals = {};
+                months.forEach(m => {
+                    totals[m.label] = { total: 0, todo: 0, inprogress: 0, done: 0 };
+                });
+
+                allSales.forEach(sales => {
+                    const row = [sales];
+                    months.forEach(m => {
+                        const data = dueDateData[sales][m.label];
+                        const completionRate = data.total > 0 ? ((data.done / data.total) * 100).toFixed(1) + '%' : '0.0%';
+
+                        row.push(
+                            data.total || 0,
+                            data.todo || 0,
+                            data.inprogress || 0,
+                            data.done || 0,
+                            completionRate
+                        );
+
+                        // Add to totals
+                        totals[m.label].total += data.total;
+                        totals[m.label].todo += data.todo;
+                        totals[m.label].inprogress += data.inprogress;
+                        totals[m.label].done += data.done;
+                    });
+                    dueDateSheetData.push(row);
+                });
+
+                // Total row
+                const totalRow = ['Total'];
+                months.forEach(m => {
+                    const data = totals[m.label];
+                    const completionRate = data.total > 0 ? ((data.done / data.total) * 100).toFixed(1) + '%' : '0.0%';
+                    totalRow.push(data.total, data.todo, data.inprogress, data.done, completionRate);
+                });
+                dueDateSheetData.push(totalRow);
             }
 
             // Create Excel Workbook
