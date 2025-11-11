@@ -1169,7 +1169,7 @@
         </div>
 
         <footer>
-            <p>Created by Vincent Fan</p>
+            <p>Created by Vincent Fan | Version 1.0</p>
         </footer>
     </div>
 
@@ -2824,7 +2824,38 @@
         function parseDateString(dateStr) {
             if (!dateStr) return null;
 
-            // Try ISO format first (YYYY-MM-DD)
+            // Month name mapping
+            const monthNames = {
+                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+            };
+
+            // Remove time component if present (e.g., "11/Feb/26 12:00 AM")
+            const dateOnly = dateStr.split(' ')[0];
+
+            // Check for DD/MMM/YY or DD/MMM/YYYY format (e.g., "11/Feb/26" or "11/Feb/2026")
+            const monthNamePattern = /^(\d{1,2})\/([a-zA-Z]{3})\/(\d{2,4})$/i;
+            const monthMatch = dateOnly.match(monthNamePattern);
+            if (monthMatch) {
+                const day = parseInt(monthMatch[1]);
+                const monthStr = monthMatch[2].toLowerCase();
+                let year = parseInt(monthMatch[3]);
+
+                // Convert 2-digit year to 4-digit (assume 20xx for years < 100)
+                if (year < 100) {
+                    year += 2000;
+                }
+
+                const month = monthNames[monthStr];
+                if (month !== undefined) {
+                    const date = new Date(year, month, day);
+                    if (!isNaN(date.getTime())) {
+                        return date;
+                    }
+                }
+            }
+
+            // Try ISO format (YYYY-MM-DD)
             let parsed = new Date(dateStr);
             if (!isNaN(parsed.getTime())) {
                 return parsed;
@@ -3574,7 +3605,7 @@
         <!-- Report Footer -->
         <div class="report-footer">
             <p><strong>JSM Dashboard - Performance Report</strong></p>
-            <p>Created by Vincent Fan</p>
+            <p>Created by Vincent Fan | Version 1.0</p>
             <p>This is an automated report generated from Jira Service Management data.</p>
         </div>
     </div>
