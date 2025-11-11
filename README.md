@@ -26,7 +26,7 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
 - **Data Persistence**: KPI settings saved to browser localStorage
 - **Flexible Date Range**: Adjust Due Date Summary to show 1-24 months of upcoming deadlines
 - **Mobile Responsive**: Optimized layout for phones and tablets
-- **Interactive Tooltips**: Hover hints explaining export options and features
+- **Interactive Tooltips**: Context-sensitive help icons (ℹ) next to each tab title explaining tab purposes, usage, and features with auto-wrapping text display
 
 ### 📥 Export Options
 - **PDF Export**: Download current view with applied filters (print-friendly)
@@ -99,6 +99,13 @@ This allows accurate workload tracking when multiple team members collaborate on
 
 ## 💡 Usage Tips
 
+### Understanding Tabs
+Hover over the ℹ icon next to each tab title to see detailed information about:
+- **Sales Statistics**: Revenue tracking, KPI settings, and team performance metrics
+- **Presales Statistics**: Workload monitoring with multi-personnel support
+- **Technical Support Statistics**: Support team workload and completion tracking
+- **Due Date Summary**: Project deadline overview with customizable time ranges
+
 ### Setting KPIs
 1. **Individual KPI**: Click the number in the "KPI Target" column for any person
 2. **Tab-Specific Global KPI**: Each tab (Sales, Presales, Technical Support) has its own KPI setting
@@ -161,10 +168,15 @@ Use `sample.csv` to test the dashboard features:
 - CSS Grid & Flexbox for responsive layout
 
 ### File Size
-- HTML: ~110 KB (single file, includes all functionality)
+- HTML: ~112 KB (single file, includes all functionality)
 - No external dependencies required at runtime
 - SheetJS library loaded from CDN for Excel export
-- Fully self-contained with mobile-responsive CSS
+- Fully self-contained with mobile-responsive CSS and intelligent tooltips
+
+### Recent Updates (v1.1)
+- Enhanced tab tooltips with context-sensitive help
+- Improved tooltip design with auto-wrapping for better readability
+- Optimized mobile date parsing for broader browser compatibility
 
 ## 📝 Customization
 
