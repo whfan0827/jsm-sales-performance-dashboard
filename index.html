@@ -2820,6 +2820,75 @@
             }
         }
 
+        // Parse date string with multiple format support (mobile browser compatible)
+        function parseDateString(dateStr) {
+            if (!dateStr) return null;
+
+            // Try ISO format first (YYYY-MM-DD)
+            let parsed = new Date(dateStr);
+            if (!isNaN(parsed.getTime())) {
+                return parsed;
+            }
+
+            // Try common formats
+            const formats = [
+                // DD/MM/YYYY
+                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+                // MM/DD/YYYY
+                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+                // DD-MM-YYYY
+                /^(\d{1,2})-(\d{1,2})-(\d{4})$/,
+                // YYYY/MM/DD
+                /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/
+            ];
+
+            for (let i = 0; i < formats.length; i++) {
+                const match = dateStr.match(formats[i]);
+                if (match) {
+                    let year, month, day;
+
+                    if (i === 0 || i === 2) {
+                        // DD/MM/YYYY or DD-MM-YYYY format
+                        day = parseInt(match[1]);
+                        month = parseInt(match[2]) - 1; // JavaScript months are 0-indexed
+                        year = parseInt(match[3]);
+                    } else if (i === 1) {
+                        // MM/DD/YYYY format
+                        month = parseInt(match[1]) - 1;
+                        day = parseInt(match[2]);
+                        year = parseInt(match[3]);
+                    } else if (i === 3) {
+                        // YYYY/MM/DD format
+                        year = parseInt(match[1]);
+                        month = parseInt(match[2]) - 1;
+                        day = parseInt(match[3]);
+                    }
+
+                    const date = new Date(year, month, day);
+                    if (!isNaN(date.getTime())) {
+                        return date;
+                    }
+                }
+            }
+
+            // Fallback: try splitting by various delimiters
+            const parts = dateStr.split(/[\/-]/);
+            if (parts.length === 3) {
+                // Try YYYY-MM-DD
+                if (parts[0].length === 4) {
+                    const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    if (!isNaN(date.getTime())) return date;
+                }
+                // Try DD-MM-YYYY
+                if (parts[2].length === 4) {
+                    const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                    if (!isNaN(date.getTime())) return date;
+                }
+            }
+
+            return null;
+        }
+
         // Update DueDate Months
         function updateDueDateMonths() {
             const input = document.getElementById('dueDateMonthsInput');
@@ -2875,14 +2944,9 @@
                 const dueDate = item['Due date'] || item['DueDate'] || item['Due Date'] || '';
                 if (!dueDate) return;
 
-                // Parse date
-                let parsedDate;
-                try {
-                    parsedDate = new Date(dueDate);
-                    if (isNaN(parsedDate.getTime())) return;
-                } catch (e) {
-                    return;
-                }
+                // Parse date using mobile-compatible function
+                const parsedDate = parseDateString(dueDate);
+                if (!parsedDate) return;
 
                 const dueYear = parsedDate.getFullYear();
                 const dueMonth = parsedDate.getMonth() + 1;
