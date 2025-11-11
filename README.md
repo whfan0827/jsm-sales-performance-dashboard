@@ -15,7 +15,7 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
 - **Sales Statistics**: Track sales team performance with individual KPI settings (default KPI: 5)
 - **Presales Statistics**: Monitor presales team workload with KPI support (default KPI: 8)
 - **Technical Support Statistics**: Track technical support team workload with KPI support (default KPI: 8)
-- **Due Date Summary**: View upcoming deadlines for the next 3 months
+- **Due Date Summary**: View upcoming deadlines with customizable time range (1-24 months, default: 3 months)
 
 ### 🎯 Key Capabilities
 - **Customizable KPIs**: Set individual or global KPI targets for each team member within their respective tabs
@@ -24,6 +24,9 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
 - **Revenue Tracking**: Monitor expected and recognized revenue with realization rates (Sales tab)
 - **Progress Visualization**: Color-coded completion bars and achievement rates
 - **Data Persistence**: KPI settings saved to browser localStorage
+- **Flexible Date Range**: Adjust Due Date Summary to show 1-24 months of upcoming deadlines
+- **Mobile Responsive**: Optimized layout for phones and tablets
+- **Interactive Tooltips**: Hover hints explaining export options and features
 
 ### 📥 Export Options
 - **PDF Export**: Download current view with applied filters (print-friendly)
@@ -31,7 +34,13 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
   - Sheet 1: Sales Statistics
   - Sheet 2: Presales Statistics
   - Sheet 3: Technical Support Statistics
-  - Sheet 4: Due Date Summary
+  - Sheet 4: Due Date Summary (reflects your Display Months setting)
+- **HTML Export**: Generate professional complete report
+  - Executive Summary with key metrics
+  - All 4 sections with full data (no pagination)
+  - Sales/Presales/TS tables sorted by Achievement Rate (highest first)
+  - Due Date Summary reflects your Display Months setting
+  - Suitable for management presentations
 
 ## 🚀 Quick Start
 
@@ -106,6 +115,25 @@ This allows accurate workload tracking when multiple team members collaborate on
 ### Exporting Reports
 - **PDF**: Exports only the currently visible tab with current filters applied
 - **Excel**: Exports all data from all four tabs (Sales, Presales, Technical Support, Due Date Summary)
+- **HTML**: Generates a professional complete report with:
+  - Executive Summary section with aggregated metrics
+  - All personnel from Sales/Presales/Technical Support (no pagination)
+  - Data sorted by Achievement Rate for easy performance review
+  - Due Date Summary with your selected month range
+  - Print-optimized formatting for management presentations
+
+## 📱 Mobile Support
+
+Fully responsive design optimized for:
+- 📱 Smartphones (portrait & landscape)
+- 📱 Tablets
+- 💻 Desktop browsers
+
+Features on mobile:
+- Touch-friendly horizontal scrolling for wide tables
+- Optimized font sizes and spacing
+- Stacked layout for controls and cards
+- Tab buttons wrap automatically
 
 ## 🔧 Browser Compatibility
 
@@ -113,6 +141,7 @@ This allows accurate workload tracking when multiple team members collaborate on
 - ✅ Firefox 88+
 - ✅ Edge 90+
 - ✅ Safari 14+
+- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
 
 ## 📊 Sample Data
 
@@ -132,9 +161,10 @@ Use `sample.csv` to test the dashboard features:
 - CSS Grid & Flexbox for responsive layout
 
 ### File Size
-- HTML: ~80 KB (single file, includes all functionality)
+- HTML: ~110 KB (single file, includes all functionality)
 - No external dependencies required at runtime
 - SheetJS library loaded from CDN for Excel export
+- Fully self-contained with mobile-responsive CSS
 
 ## 📝 Customization
 

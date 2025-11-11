@@ -128,6 +128,52 @@
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 2px solid #0078d4;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #0078d4;
+            color: white;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: help;
+            position: relative;
+        }
+
+        .info-icon:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            font-weight: normal;
+        }
+
+        .info-icon:hover::before {
+            content: '';
+            position: absolute;
+            left: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 5px solid transparent;
+            border-right-color: #333;
+            z-index: 1001;
         }
 
         .table-controls {
@@ -636,6 +682,222 @@
                 font-size: 10px;
             }
         }
+
+        /* Mobile Responsive Design */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+                border-radius: 0;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            .subtitle {
+                font-size: 13px;
+            }
+
+            /* Tab buttons - make them wrap and smaller */
+            .tabs {
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 15px;
+            }
+
+            .tab-button {
+                padding: 8px 12px;
+                font-size: 12px;
+                flex: 1 1 45%;
+                min-width: 140px;
+            }
+
+            /* Stats grid - stack on mobile */
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .revenue-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .stat-percent {
+                font-size: 12px;
+            }
+
+            /* Table controls - stack on mobile */
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .kpi-setting-inline {
+                border-left: none;
+                border-top: 2px solid #ddd;
+                padding-left: 0;
+                padding-top: 10px;
+                margin-left: 0;
+                margin-top: 10px;
+                justify-content: center;
+            }
+
+            /* Tables - enable horizontal scroll */
+            .section > div[style*="overflow-x"] {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+
+            th {
+                white-space: nowrap;
+            }
+
+            /* Due Date Summary table - special handling */
+            #dueDateSummaryTable {
+                min-width: 800px;
+                display: table;
+            }
+
+            #dueDateSummaryTable th,
+            #dueDateSummaryTable td {
+                padding: 4px 6px;
+                font-size: 10px;
+                white-space: nowrap;
+            }
+
+            /* Action buttons - stack on mobile */
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .download-btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            /* Upload section */
+            .upload-section {
+                padding: 20px;
+            }
+
+            .upload-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            /* Page size controls */
+            select {
+                font-size: 12px;
+                padding: 6px;
+            }
+
+            /* Section title */
+            .section-title {
+                font-size: 16px;
+                flex-wrap: wrap;
+            }
+
+            /* Info icon on mobile */
+            .info-icon:hover::after {
+                left: auto;
+                right: 0;
+                white-space: normal;
+                max-width: 250px;
+                font-size: 11px;
+            }
+
+            .info-icon:hover::before {
+                display: none;
+            }
+
+            /* Filter indicator */
+            .filter-indicator {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            /* Pagination */
+            .pagination button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+
+            /* Footer */
+            footer {
+                font-size: 11px;
+                padding: 15px;
+            }
+        }
+
+        /* Extra small devices (phones in portrait, less than 480px) */
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 18px;
+            }
+
+            .tab-button {
+                flex: 1 1 100%;
+                min-width: auto;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 4px 6px;
+                font-size: 10px;
+            }
+
+            #dueDateSummaryTable th,
+            #dueDateSummaryTable td {
+                padding: 3px 4px;
+                font-size: 9px;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -717,7 +979,10 @@
             <!-- Tab 1: Sales Statistics -->
             <div id="tab-sales" class="tab-content active">
                 <div class="section">
-                    <h2 class="section-title">📋 Sales Statistics</h2>
+                    <h2 class="section-title">
+                        <span>📋 Sales Statistics</span>
+                        <span class="info-icon" data-tooltip="HTML Report: Shows ALL data (no pagination) sorted by Achievement Rate ↓">ℹ</span>
+                    </h2>
 
                     <div class="table-controls">
                         <div class="search-box">
@@ -769,7 +1034,10 @@
             <!-- Tab 2: Presales Statistics -->
             <div id="tab-presales" class="tab-content">
                 <div class="section">
-                    <h2 class="section-title">🎯 Presales Statistics</h2>
+                    <h2 class="section-title">
+                        <span>🎯 Presales Statistics</span>
+                        <span class="info-icon" data-tooltip="HTML Report: Shows ALL data (no pagination) sorted by Achievement Rate ↓">ℹ</span>
+                    </h2>
 
                     <div class="table-controls">
                         <div class="search-box">
@@ -817,7 +1085,10 @@
             <!-- Tab 3: Technical Support Statistics -->
             <div id="tab-techsupport" class="tab-content">
                 <div class="section">
-                    <h2 class="section-title">🛠️ Technical Support Statistics</h2>
+                    <h2 class="section-title">
+                        <span>🛠️ Technical Support Statistics</span>
+                        <span class="info-icon" data-tooltip="HTML Report: Shows ALL data (no pagination) sorted by Achievement Rate ↓">ℹ</span>
+                    </h2>
 
                     <div class="table-controls">
                         <div class="search-box">
@@ -865,7 +1136,10 @@
             <!-- Tab 4: Due Date Summary -->
             <div id="tab-duedate" class="tab-content">
                 <div class="section">
-                    <h2 class="section-title">📅 Due Date Summary</h2>
+                    <h2 class="section-title">
+                        <span>📅 Due Date Summary</span>
+                        <span class="info-icon" data-tooltip="HTML Report: Shows complete Due Date table based on your month setting">ℹ</span>
+                    </h2>
 
                     <div class="table-controls">
                         <div class="search-box">
@@ -888,9 +1162,9 @@
             </div>
 
             <div class="action-buttons">
-                <button class="download-btn" onclick="downloadExcel()">⬇ Download Excel (All Data)</button>
-                <button class="download-btn" onclick="downloadPDF()">⬇ Download PDF (Current View)</button>
-                <button class="download-btn" onclick="downloadHTML()">⬇ Download HTML (Current View)</button>
+                <button class="download-btn" onclick="downloadExcel()" title="Export all data to Excel format">⬇ Download Excel (All Data)</button>
+                <button class="download-btn" onclick="downloadPDF()" title="Print current view to PDF">⬇ Download PDF (Current View)</button>
+                <button class="download-btn" onclick="downloadHTML()" title="Generate complete report with all 4 sections. Sales/Presales/TS tables will show ALL data (no pagination) and sorted by Achievement Rate (highest first). Due Date Summary will reflect your Display Months setting.">⬇ Download HTML (Complete Report)</button>
             </div>
         </div>
 
@@ -2825,16 +3099,11 @@
         }
 
         function downloadHTML() {
-            // Get the active tab content
-            const activeTab = document.querySelector('.tab-content.active');
-            if (!activeTab) {
-                alert('No active tab found');
+            // Check if data is loaded
+            if (!analyzedData) {
+                alert('Please upload CSV file first');
                 return;
             }
-
-            // Get the active tab name
-            const activeTabButton = document.querySelector('.tab-button.active');
-            const tabName = activeTabButton ? activeTabButton.textContent.trim() : 'Dashboard';
 
             // Extract all styles from the page
             const styleElements = document.querySelectorAll('style');
@@ -2843,10 +3112,201 @@
                 allStyles += style.innerHTML + '\n';
             });
 
-            // Clone the active tab content
-            const clonedContent = activeTab.cloneNode(true);
-            clonedContent.classList.add('active');
-            clonedContent.style.display = 'block';
+            // Helper function to generate full table HTML with all data sorted by Achievement Rate
+            function generateFullTableHTML(rows, type) {
+                if (!rows || rows.length === 0) return '<p>No data available</p>';
+
+                // Clone and sort by achievementRate (descending), but keep Total row at end
+                const dataRows = rows.filter(row => !row.isTotal);
+                const totalRow = rows.find(row => row.isTotal);
+
+                // Sort by achievementRate descending
+                dataRows.sort((a, b) => {
+                    const aRate = a.achievementRate || 0;
+                    const bRate = b.achievementRate || 0;
+                    return bRate - aRate;
+                });
+
+                let tableHTML = '<div style="overflow-x: auto;"><table border="1">';
+
+                // Generate table header based on type
+                if (type === 'sales') {
+                    tableHTML += `<thead><tr>
+                        <th>Team</th>
+                        <th>Sales</th>
+                        <th>To Do</th>
+                        <th>In Progress</th>
+                        <th>Completed</th>
+                        <th>Subtotal</th>
+                        <th>Expected Revenue</th>
+                        <th>Recognized Revenue</th>
+                        <th>Realization Rate</th>
+                        <th>Completion Rate</th>
+                        <th>KPI Target</th>
+                        <th>Achievement Rate</th>
+                    </tr></thead><tbody>`;
+
+                    dataRows.forEach(row => {
+                        tableHTML += `<tr>
+                            <td>${row.team || ''}</td>
+                            <td>${row.sales}</td>
+                            <td style="color: #f5576c;">${row.todo}</td>
+                            <td style="color: #4facfe;">${row.inProgress}</td>
+                            <td style="color: #43e97b;">${row.done}</td>
+                            <td><strong>${row.subtotal}</strong></td>
+                            <td>${formatCurrency(row.expectedRevenue || 0)}</td>
+                            <td>${formatCurrency(row.recognizedRevenue || 0)}</td>
+                            <td>${row.realizationRate}%</td>
+                            <td>${row.completionRate}%</td>
+                            <td>${row.kpiTarget !== null ? row.kpiTarget : '-'}</td>
+                            <td style="font-weight: bold; color: ${row.achievementRate >= 100 ? '#388e3c' : row.achievementRate < 80 ? '#d32f2f' : '#666'};">${row.achievementRate}%</td>
+                        </tr>`;
+                    });
+
+                    if (totalRow) {
+                        tableHTML += `<tr style="background: #e3f2fd; font-weight: bold;">
+                            <td></td>
+                            <td><strong>${totalRow.sales}</strong></td>
+                            <td>${totalRow.todo}</td>
+                            <td>${totalRow.inProgress}</td>
+                            <td>${totalRow.done}</td>
+                            <td>${totalRow.subtotal}</td>
+                            <td>${formatCurrency(totalRow.expectedRevenue || 0)}</td>
+                            <td>${formatCurrency(totalRow.recognizedRevenue || 0)}</td>
+                            <td>${totalRow.realizationRate}%</td>
+                            <td>${totalRow.completionRate}%</td>
+                            <td>-</td>
+                            <td>${totalRow.achievementRate}%</td>
+                        </tr>`;
+                    }
+                } else if (type === 'presales') {
+                    tableHTML += `<thead><tr>
+                        <th>Presales</th>
+                        <th>To Do</th>
+                        <th>In Progress</th>
+                        <th>Completed</th>
+                        <th>Subtotal</th>
+                        <th>Completion Rate</th>
+                        <th>KPI Target</th>
+                        <th>Achievement Rate</th>
+                    </tr></thead><tbody>`;
+
+                    dataRows.forEach(row => {
+                        tableHTML += `<tr>
+                            <td>${row.presales}</td>
+                            <td style="color: #f5576c;">${row.todo}</td>
+                            <td style="color: #4facfe;">${row.inProgress}</td>
+                            <td style="color: #43e97b;">${row.done}</td>
+                            <td><strong>${row.subtotal}</strong></td>
+                            <td>${row.completionRate}%</td>
+                            <td>${row.kpiTarget !== null ? row.kpiTarget : ''}</td>
+                            <td style="font-weight: bold; color: ${row.achievementRate >= 100 ? '#388e3c' : row.achievementRate < 80 ? '#d32f2f' : '#666'};">${row.achievementRate !== null ? row.achievementRate + '%' : '-'}</td>
+                        </tr>`;
+                    });
+
+                    if (totalRow) {
+                        tableHTML += `<tr style="background: #e3f2fd; font-weight: bold;">
+                            <td><strong>${totalRow.presales}</strong></td>
+                            <td>${totalRow.todo}</td>
+                            <td>${totalRow.inProgress}</td>
+                            <td>${totalRow.done}</td>
+                            <td>${totalRow.subtotal}</td>
+                            <td>${totalRow.completionRate}%</td>
+                            <td></td>
+                            <td>${totalRow.achievementRate !== null ? totalRow.achievementRate + '%' : '-'}</td>
+                        </tr>`;
+                    }
+                } else if (type === 'techsupport') {
+                    tableHTML += `<thead><tr>
+                        <th>Technical Support</th>
+                        <th>To Do</th>
+                        <th>In Progress</th>
+                        <th>Completed</th>
+                        <th>Subtotal</th>
+                        <th>Completion Rate</th>
+                        <th>KPI Target</th>
+                        <th>Achievement Rate</th>
+                    </tr></thead><tbody>`;
+
+                    dataRows.forEach(row => {
+                        tableHTML += `<tr>
+                            <td>${row.techsupport}</td>
+                            <td style="color: #f5576c;">${row.todo}</td>
+                            <td style="color: #4facfe;">${row.inProgress}</td>
+                            <td style="color: #43e97b;">${row.done}</td>
+                            <td><strong>${row.subtotal}</strong></td>
+                            <td>${row.completionRate}%</td>
+                            <td>${row.kpiTarget !== null ? row.kpiTarget : ''}</td>
+                            <td style="font-weight: bold; color: ${row.achievementRate >= 100 ? '#388e3c' : row.achievementRate < 80 ? '#d32f2f' : '#666'};">${row.achievementRate !== null ? row.achievementRate + '%' : '-'}</td>
+                        </tr>`;
+                    });
+
+                    if (totalRow) {
+                        tableHTML += `<tr style="background: #e3f2fd; font-weight: bold;">
+                            <td><strong>${totalRow.techsupport}</strong></td>
+                            <td>${totalRow.todo}</td>
+                            <td>${totalRow.inProgress}</td>
+                            <td>${totalRow.done}</td>
+                            <td>${totalRow.subtotal}</td>
+                            <td>${totalRow.completionRate}%</td>
+                            <td></td>
+                            <td>${totalRow.achievementRate !== null ? totalRow.achievementRate + '%' : '-'}</td>
+                        </tr>`;
+                    }
+                }
+
+                tableHTML += '</tbody></table></div>';
+                return tableHTML;
+            }
+
+            // Helper function to get DueDate table HTML
+            function getDueDateTableHTML() {
+                const tab = document.getElementById('tab-duedate');
+                if (!tab) return '';
+                const cloned = tab.cloneNode(true);
+                const controlsToRemove = cloned.querySelectorAll('.table-controls');
+                controlsToRemove.forEach(el => el.remove());
+                return cloned.innerHTML;
+            }
+
+            // Get Executive Summary data
+            const totalCases = document.getElementById('totalCases').textContent;
+            const todoCount = document.getElementById('todoCount').textContent;
+            const todoPercent = document.getElementById('todoPercent').textContent;
+            const inprogressCount = document.getElementById('inprogressCount').textContent;
+            const inprogressPercent = document.getElementById('inprogressPercent').textContent;
+            const doneCount = document.getElementById('doneCount').textContent;
+            const donePercent = document.getElementById('donePercent').textContent;
+
+            // Revenue data
+            const expectedRevenue = document.getElementById('expectedRevenue')?.textContent || 'N/A';
+            const recognizedRevenue = document.getElementById('recognizedRevenue')?.textContent || 'N/A';
+            const realizationRate = document.getElementById('realizationRate')?.textContent || 'N/A';
+
+            // Generate current date and time
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toLocaleString();
+
+            // Generate full table HTML for all sections (sorted by Achievement Rate)
+            const salesSection = `<div class="section">
+                <div class="stats-grid">${document.querySelector('#tab-sales .stats-grid')?.outerHTML || ''}</div>
+                <div class="revenue-stats-grid">${document.querySelector('#tab-sales .revenue-stats-grid')?.outerHTML || ''}</div>
+                ${document.querySelector('#tab-sales .info-note')?.outerHTML || ''}
+                ${generateFullTableHTML(allRows, 'sales')}
+            </div>`;
+
+            const presalesSection = `<div class="section">
+                ${generateFullTableHTML(allPresalesRows, 'presales')}
+            </div>`;
+
+            const techsupportSection = `<div class="section">
+                ${generateFullTableHTML(allTechSupportRows, 'techsupport')}
+            </div>`;
+
+            const duedateSection = `<div class="section">
+                ${getDueDateTableHTML()}
+            </div>`;
 
             // Create complete HTML document
             const htmlContent = `<!DOCTYPE html>
@@ -2854,25 +3314,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSM Dashboard - ${tabName} - ${new Date().toLocaleDateString()}</title>
+    <title>JSM Dashboard - Complete Report - ${dateStr}</title>
     <style>
         ${allStyles}
         body {
-            margin: 20px;
+            margin: 0;
             padding: 20px;
+            background: #f5f5f5;
+        }
+        .report-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .report-header {
+            text-align: center;
+            border-bottom: 3px solid #0078d4;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .report-header h1 {
+            color: #0078d4;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .report-meta {
+            color: #666;
+            font-size: 14px;
+        }
+        .executive-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .executive-summary h2 {
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .summary-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .summary-label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .section-divider {
+            border: 0;
+            border-top: 2px solid #e0e0e0;
+            margin: 40px 0;
+        }
+        .section-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-left: 5px solid #0078d4;
+            margin-bottom: 20px;
+        }
+        .section-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 22px;
         }
         .tab-content {
             display: block !important;
         }
+        .table-controls, .pagination, .page-size-control {
+            display: none !important;
+        }
+        .report-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .report-container {
+                box-shadow: none;
+                padding: 20px;
+            }
+            .section-divider {
+                page-break-after: always;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>JSM Dashboard - ${tabName}</h1>
-    <p style="color: #666; font-size: 14px;">Generated on: ${new Date().toLocaleString()}</p>
-    ${clonedContent.outerHTML}
-    <footer style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
-        <p>Created by Vincent Fan</p>
-    </footer>
+    <div class="report-container">
+        <!-- Report Header -->
+        <div class="report-header">
+            <h1>📊 JSM Dashboard - Complete Performance Report</h1>
+            <div class="report-meta">
+                <p>Generated on: ${timeStr}</p>
+                <p>Report Period: All Available Data</p>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="executive-summary">
+            <h2>📋 Executive Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Total Cases</div>
+                    <div class="summary-value">${totalCases}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">To Do</div>
+                    <div class="summary-value">${todoCount} <small style="font-size: 16px;">(${todoPercent})</small></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">In Progress</div>
+                    <div class="summary-value">${inprogressCount} <small style="font-size: 16px;">(${inprogressPercent})</small></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Completed</div>
+                    <div class="summary-value">${doneCount} <small style="font-size: 16px;">(${donePercent})</small></div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Expected Revenue</div>
+                    <div class="summary-value" style="font-size: 20px;">${expectedRevenue}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Recognized Revenue</div>
+                    <div class="summary-value" style="font-size: 20px;">${recognizedRevenue}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Realization Rate</div>
+                    <div class="summary-value">${realizationRate}</div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Sales Statistics Section -->
+        <div class="section-header">
+            <h2>📊 Sales Statistics</h2>
+        </div>
+        <div class="tab-content">
+            ${salesSection}
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Presales Statistics Section -->
+        <div class="section-header">
+            <h2>🎯 Presales Statistics</h2>
+        </div>
+        <div class="tab-content">
+            ${presalesSection}
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Technical Support Statistics Section -->
+        <div class="section-header">
+            <h2>🛠️ Technical Support Statistics</h2>
+        </div>
+        <div class="tab-content">
+            ${techsupportSection}
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- Due Date Summary Section -->
+        <div class="section-header">
+            <h2>📅 Due Date Summary</h2>
+        </div>
+        <div class="tab-content">
+            ${duedateSection}
+        </div>
+
+        <!-- Report Footer -->
+        <div class="report-footer">
+            <p><strong>JSM Dashboard - Performance Report</strong></p>
+            <p>Created by Vincent Fan</p>
+            <p>This is an automated report generated from Jira Service Management data.</p>
+        </div>
+    </div>
 </body>
 </html>`;
 
@@ -2881,11 +3522,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-
-            // Generate filename with date
-            const dateStr = new Date().toISOString().split('T')[0];
-            const tabNameClean = tabName.replace(/[^\w\s]/g, '').replace(/\s+/g, '_');
-            link.download = `JSM_Dashboard_${tabNameClean}_${dateStr}.html`;
+            link.download = `JSM_Dashboard_Complete_Report_${dateStr}.html`;
 
             document.body.appendChild(link);
             link.click();
