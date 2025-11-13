@@ -19,7 +19,8 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
 
 ### 🎯 Key Capabilities
 - **Customizable KPIs**: Set individual or global KPI targets for each team member within their respective tabs
-- **Advanced Filtering**: Search, sort, and filter data across all tables
+- **Separated Filtering**: Dedicated Team dropdown + Name search box for precise filtering
+- **Advanced Sorting**: Click column headers to sort data across all tables
 - **Real-time Statistics**: Dynamic stat cards showing filtered vs. total data
 - **Revenue Tracking**: Monitor expected and recognized revenue with realization rates (Sales tab)
 - **Progress Visualization**: Color-coded completion bars and achievement rates
@@ -114,10 +115,12 @@ Hover over the ℹ icon next to each tab title to see detailed information about
    - Technical Support default: 8 cases/person
 3. **Apply to All**: Use the KPI input in each tab and click "Apply to All" to set the same KPI for all team members in that tab
 
-### Filtering Data
-- Use the search box to filter by name or team
-- Click column headers to sort ascending/descending
-- Adjust "Show" dropdown to change page size
+### Filtering Data (Sales Tab)
+- **Team Filter**: Select a specific team from the dropdown (e.g., "C", "N22", "SS") or choose "All Teams"
+- **Name Search**: Type to search sales person names (fuzzy match)
+- **Combined Filtering**: Both filters work together - select Team C + search "Allen" to find specific person
+- **Sorting**: Click column headers to sort ascending/descending
+- **Page Size**: Adjust "Show" dropdown to change number of rows displayed
 
 ### Exporting Reports
 - **PDF**: Exports only the currently visible tab with current filters applied
@@ -173,7 +176,18 @@ Use `sample.csv` to test the dashboard features:
 - SheetJS library loaded from CDN for Excel export
 - Fully self-contained with mobile-responsive CSS and intelligent tooltips
 
-### Recent Updates (v1.1)
+### Recent Updates
+
+#### v1.2 (Latest)
+- **Separated Filtering UI**: Team dropdown + Name search for Sales tab
+  - Team filter uses exact match (select "C" shows only Team C members)
+  - Name search uses fuzzy match (search "Chen" finds all people with "Chen" in name)
+  - Both filters work together with AND logic for precise results
+  - Compact layout: 150px Team dropdown + flexible Name search box
+  - Responsive: horizontal on desktop, vertical stack on mobile
+- Eliminates ambiguity when searching short strings like "C"
+
+#### v1.1
 - Enhanced tab tooltips with context-sensitive help
 - Improved tooltip design with auto-wrapping for better readability
 - Optimized mobile date parsing for broader browser compatibility
