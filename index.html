@@ -193,12 +193,46 @@
             max-width: 300px;
         }
 
-        .search-box input {
+        .search-box input,
+        .search-box select {
             width: 100%;
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
+        }
+
+        .search-box select {
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .filter-group select {
+            width: 150px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: white;
+            flex-shrink: 0;
+        }
+
+        .filter-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 200px;
         }
 
         .page-size {
@@ -762,6 +796,22 @@
                 width: 100%;
             }
 
+            .filter-group {
+                max-width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .filter-group select {
+                width: 100%;
+            }
+
+            .filter-group input {
+                width: 100%;
+                min-width: auto;
+            }
+
             .kpi-setting-inline {
                 border-left: none;
                 border-top: 2px solid #ddd;
@@ -988,8 +1038,11 @@
                     </h2>
 
                     <div class="table-controls">
-                        <div class="search-box">
-                            <input type="text" id="searchInput" placeholder="🔍 Search team or sales person..." onkeyup="filterTable()">
+                        <div class="filter-group">
+                            <select id="teamFilter" onchange="filterTable()">
+                                <option value="">All Teams</option>
+                            </select>
+                            <input type="text" id="searchInput" placeholder="🔍 Search sales person..." onkeyup="filterTable()">
                         </div>
                         <div class="kpi-setting-inline">
                             <label>🎯 KPI:</label>
@@ -1787,8 +1840,38 @@
             // Render table
             renderTable();
 
+            // Populate team filter dropdown
+            populateTeamFilter();
+
             // Show results
             document.getElementById('results').classList.add('show');
+        }
+
+        // Populate team filter dropdown with unique teams
+        function populateTeamFilter() {
+            const teamFilter = document.getElementById('teamFilter');
+            const uniqueTeams = new Set();
+
+            // Extract unique teams from allRows (excluding total row)
+            allRows.forEach(row => {
+                if (!row.isTotal && row.team && row.team.trim() !== '') {
+                    uniqueTeams.add(row.team);
+                }
+            });
+
+            // Sort teams alphabetically
+            const sortedTeams = Array.from(uniqueTeams).sort();
+
+            // Clear existing options except "All Teams"
+            teamFilter.innerHTML = '<option value="">All Teams</option>';
+
+            // Add team options
+            sortedTeams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.toLowerCase();
+                option.textContent = team;
+                teamFilter.appendChild(option);
+            });
         }
 
         function renderTable(filteredRows = null) {
@@ -1934,18 +2017,26 @@
 
         // Search function
         function filterTable() {
+            const teamFilter = document.getElementById('teamFilter').value.toLowerCase();
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-            if (!searchTerm) {
-                // No search term, show all data
+            // If no filters applied, show all data
+            if (!teamFilter && !searchTerm) {
                 renderTable(null);
                 return;
             }
 
             const filtered = allRows.filter(row => {
                 if (row.isTotal) return true; // Always show total row
-                return row.team.toLowerCase().includes(searchTerm) ||
-                       row.sales.toLowerCase().includes(searchTerm);
+
+                // Team filter - exact match on team field
+                const teamMatch = !teamFilter || row.team.toLowerCase() === teamFilter;
+
+                // Name search - partial match on sales name
+                const nameMatch = !searchTerm || row.sales.toLowerCase().includes(searchTerm);
+
+                // Both filters must pass (AND logic)
+                return teamMatch && nameMatch;
             });
             renderTable(filtered);
         }
