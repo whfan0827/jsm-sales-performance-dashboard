@@ -3453,8 +3453,11 @@
                 const tab = document.getElementById('tab-duedate');
                 if (!tab) return '';
                 const cloned = tab.cloneNode(true);
+                // Remove controls and section title to avoid duplication
                 const controlsToRemove = cloned.querySelectorAll('.table-controls');
                 controlsToRemove.forEach(el => el.remove());
+                const titleToRemove = cloned.querySelector('.section-title');
+                if (titleToRemove) titleToRemove.remove();
                 return cloned.innerHTML;
             }
 
@@ -3576,14 +3579,19 @@
             padding: 15px 20px;
             border-left: 5px solid #0078d4;
             margin-bottom: 20px;
+            margin-top: 0;
         }
         .section-header h2 {
             margin: 0;
             color: #333;
             font-size: 22px;
         }
+        .section {
+            margin-bottom: 30px;
+        }
         .tab-content {
             display: block !important;
+            margin-bottom: 0;
         }
         .table-controls, .pagination, .page-size-control {
             display: none !important;
