@@ -951,6 +951,46 @@
                 font-size: 9px;
             }
         }
+
+        /* KPI Charts Styles */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+
+        .chart-container h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .chart-container canvas {
+            max-height: 350px;
+            cursor: pointer;
+        }
+
+        /* Responsive: Single column on mobile */
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                min-height: 300px;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -1016,16 +1056,19 @@
             <!-- Tab Buttons -->
             <div class="tabs">
                 <button class="tab-button active" onclick="switchTab('sales')">
-                    📊 Sales Statistics
+                    💰 Sales Statistics
                 </button>
                 <button class="tab-button" onclick="switchTab('presales')">
-                    🎯 Presales Statistics
+                    💡 Presales Statistics
                 </button>
                 <button class="tab-button" onclick="switchTab('techsupport')">
                     🛠️ Technical Support Statistics
                 </button>
                 <button class="tab-button" onclick="switchTab('duedate')">
                     📅 Due Date Summary
+                </button>
+                <button class="tab-button" onclick="switchTab('kpi-charts')">
+                    📈 KPI Charts
                 </button>
             </div>
 
@@ -1091,7 +1134,7 @@
             <div id="tab-presales" class="tab-content">
                 <div class="section">
                     <h2 class="section-title">
-                        <span>🎯 Presales Statistics</span>
+                        <span>💡 Presales Statistics</span>
                         <span class="info-icon" data-tooltip="Track presales team workload: case counts by status, completion rates, and KPI achievement. Supports multiple personnel per case. Set individual or global KPI targets.">ℹ</span>
                     </h2>
 
@@ -1213,6 +1256,43 @@
                             <thead id="dueDateSummaryHead"></thead>
                             <tbody id="dueDateSummaryBody"></tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 5: KPI Charts -->
+            <div id="tab-kpi-charts" class="tab-content">
+                <div class="section">
+                    <h2 class="section-title">
+                        <span>📈 KPI Visual Analytics</span>
+                        <span class="info-icon" data-tooltip="Interactive charts showing team performance, sales rankings, presales and technical support statistics. Click on chart elements to drill down into details.">ℹ</span>
+                    </h2>
+
+                    <!-- Charts Grid: 2x2 Layout -->
+                    <div class="charts-grid">
+                        <!-- Chart 1: Team Performance -->
+                        <div class="chart-container">
+                            <h3>Team Performance Overview</h3>
+                            <canvas id="teamChart"></canvas>
+                        </div>
+
+                        <!-- Chart 2: Sales Ranking -->
+                        <div class="chart-container">
+                            <h3>Sales Ranking (Top 10)</h3>
+                            <canvas id="salesChart"></canvas>
+                        </div>
+
+                        <!-- Chart 3: Presales Performance -->
+                        <div class="chart-container">
+                            <h3>Presales Performance</h3>
+                            <canvas id="psChart"></canvas>
+                        </div>
+
+                        <!-- Chart 4: Technical Support Performance -->
+                        <div class="chart-container">
+                            <h3>Technical Support Performance</h3>
+                            <canvas id="tsChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2266,21 +2346,40 @@
                 const status = (row['Status'] || '').trim();
                 let team = (row['Custom field (MMPJ_MCI_SalesTeamID)'] || '').trim();
 
-                // Get all Presales personnel (may be array)
-                let presalesList = row['Custom field (MMPJ_MCI_PS)'];
+                // Collect all PS personnel from multiple columns
+                const psFields = [
+                    'Custom field (MMPJ_MCI_PS)',
+                    'Custom field (MMPJ_MCI_PS)1',
+                    'Custom field (MMPJ_MCI_PS)2',
+                    'Custom field (MMPJ_MCI_PS)3',
+                    'Custom field (MMPJ_MCI_PS)4'
+                ];
 
-                // If it's an array, process each person
-                if (Array.isArray(presalesList)) {
-                    // Filter empty values
-                    presalesList = presalesList.filter(p => p && p.trim());
+                let presalesList = [];
 
-                    if (presalesList.length === 0) {
-                        presalesList = ['Unassigned'];
+                // Read all PS fields and combine into one list
+                psFields.forEach(field => {
+                    let value = row[field];
+                    if (value) {
+                        if (Array.isArray(value)) {
+                            // If array, add all non-empty values
+                            presalesList.push(...value.filter(p => p && p.trim()));
+                        } else {
+                            // If string, add if non-empty
+                            let cleanValue = value.trim().replace(/^﻿/, '');
+                            if (cleanValue) {
+                                presalesList.push(cleanValue);
+                            }
+                        }
                     }
-                } else {
-                    // If not array (old format or single value)
-                    let presales = (presalesList || '').trim().replace(/^﻿/, '');
-                    presalesList = presales ? [presales] : ['Unassigned'];
+                });
+
+                // Remove duplicates (same person might appear in multiple columns)
+                presalesList = [...new Set(presalesList)];
+
+                // If no PS assigned, mark as Unassigned
+                if (presalesList.length === 0) {
+                    presalesList = ['Unassigned'];
                 }
 
                 // Count for each Presales person
@@ -2594,21 +2693,38 @@
                 const status = (row['Status'] || '').trim();
                 let team = (row['Custom field (MMPJ_MCI_SalesTeamID)'] || '').trim();
 
-                // Get all Technical Support personnel (may be array)
-                let techsupportList = row['Custom field (MMPJ_MCI_TS)'];
+                // Collect all TS personnel from multiple columns
+                const tsFields = [
+                    'Custom field (MMPJ_MCI_TS)',
+                    'Custom field (MMPJ_MCI_TS)1',
+                    'Custom field (MMPJ_MCI_TS)2'
+                ];
 
-                // If it's an array, process each person
-                if (Array.isArray(techsupportList)) {
-                    // Filter empty values
-                    techsupportList = techsupportList.filter(t => t && t.trim());
+                let techsupportList = [];
 
-                    if (techsupportList.length === 0) {
-                        techsupportList = ['Unassigned'];
+                // Read all TS fields and combine into one list
+                tsFields.forEach(field => {
+                    let value = row[field];
+                    if (value) {
+                        if (Array.isArray(value)) {
+                            // If array, add all non-empty values
+                            techsupportList.push(...value.filter(t => t && t.trim()));
+                        } else {
+                            // If string, add if non-empty
+                            let cleanValue = value.trim().replace(/^﻿/, '');
+                            if (cleanValue) {
+                                techsupportList.push(cleanValue);
+                            }
+                        }
                     }
-                } else {
-                    // If not array (old format or single value)
-                    let techsupport = (techsupportList || '').trim().replace(/^﻿/, '');
-                    techsupportList = techsupport ? [techsupport] : ['Unassigned'];
+                });
+
+                // Remove duplicates (same person might appear in multiple columns)
+                techsupportList = [...new Set(techsupportList)];
+
+                // If no TS assigned, mark as Unassigned
+                if (techsupportList.length === 0) {
+                    techsupportList = ['Unassigned'];
                 }
 
                 // Count for each Technical Support person
@@ -3263,6 +3379,98 @@
             renderDueDateTable(dueDateData, months, filteredSales);
         }
 
+        // ===== KPI Charts Data Processing Functions =====
+
+        // Global variables for chart instances
+        let teamChart, salesChart, psChart, tsChart;
+
+        // Aggregate Team Data
+        function aggregateTeamData(salesInfo) {
+            const teamStats = {};
+
+            Object.entries(salesInfo).forEach(([sales, info]) => {
+                const team = info.team || 'Unknown';
+
+                if (!teamStats[team]) {
+                    teamStats[team] = {
+                        caseCount: 0,
+                        expectedRevenue: 0,
+                        recognizedRevenue: 0
+                    };
+                }
+
+                teamStats[team].caseCount += info.stats.ToDo + info.stats.InProgress + info.stats.Done;
+                teamStats[team].expectedRevenue += info.expectedRevenue || 0;
+                teamStats[team].recognizedRevenue += info.recognizedRevenue || 0;
+            });
+
+            return teamStats;
+        }
+
+        // Prepare Sales Ranking Data (Top 10)
+        function prepareSalesRanking(salesInfo) {
+            const salesArray = Object.entries(salesInfo).map(([name, info]) => {
+                const totalCases = info.stats.ToDo + info.stats.InProgress + info.stats.Done;
+                const completionRate = totalCases > 0 ? (info.stats.Done / totalCases * 100).toFixed(1) : 0;
+
+                return {
+                    name: name,
+                    caseCount: totalCases,
+                    expectedRevenue: info.expectedRevenue || 0,
+                    recognizedRevenue: info.recognizedRevenue || 0,
+                    completionRate: parseFloat(completionRate)
+                };
+            });
+
+            // Sort by expected revenue descending and take top 10
+            salesArray.sort((a, b) => b.expectedRevenue - a.expectedRevenue);
+            return salesArray.slice(0, 10);
+        }
+
+        // Prepare PS Data
+        function preparePSData(presalesInfo) {
+            const psArray = Object.entries(presalesInfo).map(([name, info]) => {
+                const stats = info.stats;
+                const totalCases = stats.ToDo + stats.InProgress + stats.Done;
+                const completionRate = totalCases > 0 ? (stats.Done / totalCases * 100).toFixed(1) : 0;
+
+                return {
+                    name: name,
+                    todo: stats.ToDo,
+                    inProgress: stats.InProgress,
+                    done: stats.Done,
+                    totalCases: totalCases,
+                    completionRate: parseFloat(completionRate)
+                };
+            });
+
+            // Sort by total cases descending and take top 10
+            psArray.sort((a, b) => b.totalCases - a.totalCases);
+            return psArray.slice(0, 10);
+        }
+
+        // Prepare TS Data
+        function prepareTSData(techsupportInfo) {
+            const tsArray = Object.entries(techsupportInfo).map(([name, info]) => {
+                const stats = info.stats;
+                const totalCases = stats.ToDo + stats.InProgress + stats.Done;
+                const completionRate = totalCases > 0 ? (stats.Done / totalCases * 100).toFixed(1) : 0;
+
+                return {
+                    name: name,
+                    todo: stats.ToDo,
+                    inProgress: stats.InProgress,
+                    done: stats.Done,
+                    totalCases: totalCases,
+                    completionRate: parseFloat(completionRate)
+                };
+            });
+
+            // Sort by total cases descending and take top 10
+            tsArray.sort((a, b) => b.totalCases - a.totalCases);
+            return tsArray.slice(0, 10);
+        }
+
         // Tab switching function
         function switchTab(tabName) {
             // Hide all tabs
@@ -3280,7 +3488,449 @@
             }
 
             // Set corresponding button as active
-            event.target.classList.add('active');
+            // Support both event-based and programmatic calls
+            if (typeof event !== 'undefined' && event && event.target) {
+                event.target.classList.add('active');
+            } else {
+                // Programmatic call - find and activate the button
+                allButtons.forEach(btn => {
+                    if (btn.onclick && btn.onclick.toString().includes(`'${tabName}'`)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            // Render KPI Charts when switching to charts tab
+            if (tabName === 'kpi-charts' && analyzedData && presalesData && techsupportData) {
+                renderKPICharts();
+            }
+        }
+
+        // ===== KPI Charts Rendering Functions =====
+
+        // Main function to render all KPI charts
+        function renderKPICharts() {
+            // Destroy existing charts
+            if (teamChart) teamChart.destroy();
+            if (salesChart) salesChart.destroy();
+            if (psChart) psChart.destroy();
+            if (tsChart) tsChart.destroy();
+
+            // Prepare data
+            const teamData = aggregateTeamData(analyzedData);
+            const salesRanking = prepareSalesRanking(analyzedData);
+            const psData = preparePSData(presalesData);
+            const tsData = prepareTSData(techsupportData);
+
+            // Render charts
+            teamChart = createTeamChart(teamData);
+            salesChart = createSalesChart(salesRanking);
+            psChart = createPSChart(psData);
+            tsChart = createTSChart(tsData);
+        }
+
+        // Chart 1: Team Performance Overview
+        function createTeamChart(teamData) {
+            const teams = Object.keys(teamData);
+            const caseCounts = teams.map(team => teamData[team].caseCount);
+            const expectedRevenue = teams.map(team => teamData[team].expectedRevenue);
+            const recognizedRevenue = teams.map(team => teamData[team].recognizedRevenue);
+
+            const ctx = document.getElementById('teamChart').getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: teams,
+                    datasets: [
+                        {
+                            label: 'Case Count',
+                            data: caseCounts,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Expected Revenue',
+                            data: expectedRevenue,
+                            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Recognized Revenue',
+                            data: recognizedRevenue,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Case Count'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Revenue (USD)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.yAxisID === 'y1') {
+                                        label += '$' + context.parsed.y.toLocaleString();
+                                    } else {
+                                        label += context.parsed.y;
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 2: Sales Ranking (Top 10)
+        function createSalesChart(salesRanking) {
+            const names = salesRanking.map(s => s.name);
+            const expectedRevenue = salesRanking.map(s => s.expectedRevenue);
+            const recognizedRevenue = salesRanking.map(s => s.recognizedRevenue);
+
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [
+                        {
+                            label: 'Expected Revenue',
+                            data: expectedRevenue,
+                            backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Recognized Revenue',
+                            data: recognizedRevenue,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const salesPerson = names[index];
+
+                            // Switch to sales tab and filter
+                            switchTab('sales');
+                            document.getElementById('searchInput').value = salesPerson;
+                            filterTable();
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Revenue (USD)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += '$' + context.parsed.x.toLocaleString();
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 3: PS Performance
+        function createPSChart(psData) {
+            const names = psData.map(ps => ps.name);
+            const todo = psData.map(ps => ps.todo);
+            const inProgress = psData.map(ps => ps.inProgress);
+            const done = psData.map(ps => ps.done);
+            const completionRate = psData.map(ps => ps.completionRate);
+
+            const ctx = document.getElementById('psChart').getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [
+                        {
+                            label: 'To Do',
+                            data: todo,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'In Progress',
+                            data: inProgress,
+                            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Done',
+                            data: done,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Completion Rate',
+                            data: completionRate,
+                            type: 'line',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 2,
+                            yAxisID: 'y1',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const psName = names[index];
+
+                            // Switch to presales tab and filter
+                            switchTab('presales');
+                            document.getElementById('presalesSearchInput').value = psName;
+                            filterPresalesTable();
+                        }
+                    },
+                    scales: {
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Case Count'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Completion Rate (%)'
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.type === 'line') {
+                                        label += context.parsed.y + '%';
+                                    } else {
+                                        label += context.parsed.y;
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 4: TS Performance
+        function createTSChart(tsData) {
+            const names = tsData.map(ts => ts.name);
+            const todo = tsData.map(ts => ts.todo);
+            const inProgress = tsData.map(ts => ts.inProgress);
+            const done = tsData.map(ts => ts.done);
+            const completionRate = tsData.map(ts => ts.completionRate);
+
+            const ctx = document.getElementById('tsChart').getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: names,
+                    datasets: [
+                        {
+                            label: 'To Do',
+                            data: todo,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'In Progress',
+                            data: inProgress,
+                            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Done',
+                            data: done,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Completion Rate',
+                            data: completionRate,
+                            type: 'line',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            borderWidth: 2,
+                            yAxisID: 'y1',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const tsName = names[index];
+
+                            // Switch to techsupport tab and filter
+                            switchTab('techsupport');
+                            document.getElementById('techsupportSearchInput').value = tsName;
+                            filterTechSupportTable();
+                        }
+                    },
+                    scales: {
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Case Count'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Completion Rate (%)'
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.type === 'line') {
+                                        label += context.parsed.y + '%';
+                                    } else {
+                                        label += context.parsed.y;
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
         }
 
         function downloadPDF() {
@@ -3294,12 +3944,113 @@
                 return;
             }
 
+            // Always re-render charts to ensure they're fresh
+            renderKPICharts();
+
+            // Wait for charts to fully render including animations
+            // Chart.js default animation duration is 1000ms, we add extra buffer
+            setTimeout(() => {
+                continueDownloadHTML();
+            }, 2000);
+        }
+
+        function continueDownloadHTML() {
             // Extract all styles from the page
             const styleElements = document.querySelectorAll('style');
             let allStyles = '';
             styleElements.forEach(style => {
                 allStyles += style.innerHTML + '\n';
             });
+
+            // Helper function to generate KPI Charts HTML with images
+            function generateKPIChartsHTML() {
+                try {
+                    const teamCanvas = document.getElementById('teamChart');
+                    const salesCanvas = document.getElementById('salesChart');
+                    const psCanvas = document.getElementById('psChart');
+                    const tsCanvas = document.getElementById('tsChart');
+
+                    // Check if canvases exist
+                    if (!teamCanvas || !salesCanvas || !psCanvas || !tsCanvas) {
+                        console.error('One or more chart canvases not found');
+                        return '<p style="color: red;">KPI Charts could not be generated - canvas elements not found</p>';
+                    }
+
+                    // Convert canvases to base64 images
+                    let teamImg = '';
+                    let salesImg = '';
+                    let psImg = '';
+                    let tsImg = '';
+
+                    try {
+                        teamImg = teamCanvas.toDataURL('image/png');
+                        if (!teamImg || teamImg === 'data:,') {
+                            console.error('Team chart canvas is empty');
+                            teamImg = '';
+                        }
+                    } catch (e) {
+                        console.error('Error converting team chart:', e);
+                    }
+
+                    try {
+                        salesImg = salesCanvas.toDataURL('image/png');
+                        if (!salesImg || salesImg === 'data:,') {
+                            console.error('Sales chart canvas is empty');
+                            salesImg = '';
+                        }
+                    } catch (e) {
+                        console.error('Error converting sales chart:', e);
+                    }
+
+                    try {
+                        psImg = psCanvas.toDataURL('image/png');
+                        if (!psImg || psImg === 'data:,') {
+                            console.error('PS chart canvas is empty');
+                            psImg = '';
+                        }
+                    } catch (e) {
+                        console.error('Error converting PS chart:', e);
+                    }
+
+                    try {
+                        tsImg = tsCanvas.toDataURL('image/png');
+                        if (!tsImg || tsImg === 'data:,') {
+                            console.error('TS chart canvas is empty');
+                            tsImg = '';
+                        }
+                    } catch (e) {
+                        console.error('Error converting TS chart:', e);
+                    }
+
+                    // Generate HTML with fallback messages for missing images
+                    return `
+                    <div class="kpi-charts-section">
+                        <h2 style="font-size: 24px; color: #333; margin-bottom: 20px;">📈 KPI Charts</h2>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-bottom: 30px;">
+                            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">Team Performance Overview</h3>
+                                ${teamImg ? `<img src="${teamImg}" style="width: 100%; height: auto;" alt="Team Performance Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
+                            </div>
+                            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">Sales Ranking (Top 10)</h3>
+                                ${salesImg ? `<img src="${salesImg}" style="width: 100%; height: auto;" alt="Sales Ranking Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
+                            </div>
+                            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">Presales Performance</h3>
+                                ${psImg ? `<img src="${psImg}" style="width: 100%; height: auto;" alt="Presales Performance Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
+                            </div>
+                            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">Technical Support Performance</h3>
+                                ${tsImg ? `<img src="${tsImg}" style="width: 100%; height: auto;" alt="Technical Support Performance Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                } catch (error) {
+                    console.error('Error generating KPI charts HTML:', error);
+                    return '<p style="color: red;">KPI Charts could not be generated: ' + error.message + '</p>';
+                }
+            }
 
             // Helper function to generate full table HTML with all data sorted by Achievement Rate
             function generateFullTableHTML(rows, type) {
@@ -3664,11 +4415,14 @@
             </div>
         </div>
 
+        <!-- KPI Charts Section -->
+        ${generateKPIChartsHTML()}
+
         <hr class="section-divider">
 
         <!-- Sales Statistics Section -->
         <div class="section-header">
-            <h2>📊 Sales Statistics</h2>
+            <h2>💰 Sales Statistics</h2>
         </div>
         <div class="tab-content">
             ${salesSection}
@@ -3678,7 +4432,7 @@
 
         <!-- Presales Statistics Section -->
         <div class="section-header">
-            <h2>🎯 Presales Statistics</h2>
+            <h2>💡 Presales Statistics</h2>
         </div>
         <div class="tab-content">
             ${presalesSection}
@@ -3727,5 +4481,8 @@
             URL.revokeObjectURL(url);
         }
     </script>
+
+    <!-- Chart.js Library for KPI Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </body>
 </html>

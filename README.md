@@ -12,10 +12,11 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
 ## ✨ Features
 
 ### 📊 Multi-Tab Analytics
-- **Sales Statistics**: Track sales team performance with individual KPI settings (default KPI: 5)
-- **Presales Statistics**: Monitor presales team workload with KPI support (default KPI: 8)
-- **Technical Support Statistics**: Track technical support team workload with KPI support (default KPI: 8)
-- **Due Date Summary**: View upcoming deadlines with customizable time range (1-24 months, default: 3 months)
+- **💰 Sales Statistics**: Track sales team performance with individual KPI settings (default KPI: 5)
+- **💡 Presales Statistics**: Monitor presales team workload with KPI support (default KPI: 8)
+- **🛠️ Technical Support Statistics**: Track technical support team workload with KPI support (default KPI: 8)
+- **📅 Due Date Summary**: View upcoming deadlines with customizable time range (1-24 months, default: 3 months)
+- **📈 KPI Charts**: Interactive visual analytics with 4 dynamic charts for performance tracking
 
 ### 🎯 Key Capabilities
 - **Customizable KPIs**: Set individual or global KPI targets for each team member within their respective tabs
@@ -74,8 +75,10 @@ The dashboard expects a Jira Service Management CSV export with the following co
 - `Due date` - Issue due date
 
 ### Optional Columns
-- `Custom field (MMPJ_MCI_PS)` - Presales personnel (supports multiple values)
-- `Custom field (MMPJ_MCI_TS)` - Technical Support personnel (supports multiple values)
+- `Custom field (MMPJ_MCI_PS)` - Presales personnel (supports multiple values and columns)
+  - Also reads: PS1, PS2, PS3, PS4 (5 columns total with deduplication)
+- `Custom field (MMPJ_MCI_TS)` - Technical Support personnel (supports multiple values and columns)
+  - Also reads: TS1, TS2 (3 columns total with deduplication)
 - Additional custom fields as needed
 
 See `sample.csv` for a complete example.
@@ -93,8 +96,12 @@ The dashboard automatically classifies Jira Service Management statuses into thr
 The dashboard supports multiple personnel assignments for Presales and Technical Support:
 
 - **Sales**: Single assignment per case
-- **Presales**: Supports multiple personnel per case (cases are counted for each assigned person)
-- **Technical Support**: Supports multiple personnel per case (cases are counted for each assigned person)
+- **Presales**: Supports multiple personnel per case across 5 columns (PS, PS1, PS2, PS3, PS4)
+  - Cases are counted for each assigned person
+  - Automatic deduplication if same person appears in multiple columns
+- **Technical Support**: Supports multiple personnel per case across 3 columns (TS, TS1, TS2)
+  - Cases are counted for each assigned person
+  - Automatic deduplication if same person appears in multiple columns
 
 This allows accurate workload tracking when multiple team members collaborate on the same case.
 
@@ -102,10 +109,16 @@ This allows accurate workload tracking when multiple team members collaborate on
 
 ### Understanding Tabs
 Hover over the ℹ icon next to each tab title to see detailed information about:
-- **Sales Statistics**: Revenue tracking, KPI settings, and team performance metrics
-- **Presales Statistics**: Workload monitoring with multi-personnel support
-- **Technical Support Statistics**: Support team workload and completion tracking
-- **Due Date Summary**: Project deadline overview with customizable time ranges
+- **💰 Sales Statistics**: Revenue tracking, KPI settings, and team performance metrics
+- **💡 Presales Statistics**: Workload monitoring with multi-personnel support
+- **🛠️ Technical Support Statistics**: Support team workload and completion tracking
+- **📅 Due Date Summary**: Project deadline overview with customizable time ranges
+- **📈 KPI Charts**: Visual analytics dashboard with interactive charts
+  - Team Performance: Case count and revenue by team
+  - Sales Ranking: Top 10 sales by revenue
+  - Presales Performance: Top 10 PS by case count and completion rate
+  - Technical Support Performance: Top 10 TS by case count and completion rate
+  - Click on chart elements to drill down to detailed data
 
 ### Setting KPIs
 1. **Individual KPI**: Click the number in the "KPI Target" column for any person
@@ -124,9 +137,10 @@ Hover over the ℹ icon next to each tab title to see detailed information about
 
 ### Exporting Reports
 - **PDF**: Exports only the currently visible tab with current filters applied
-- **Excel**: Exports all data from all four tabs (Sales, Presales, Technical Support, Due Date Summary)
+- **Excel**: Exports all data from all five tabs (Sales, Presales, Technical Support, Due Date Summary, KPI Charts data)
 - **HTML**: Generates a professional complete report with:
   - Executive Summary section with aggregated metrics
+  - KPI Charts section with 4 visual charts (Team, Sales, PS, TS)
   - All personnel from Sales/Presales/Technical Support (no pagination)
   - Data sorted by Achievement Rate for easy performance review
   - Due Date Summary with your selected month range
@@ -166,19 +180,38 @@ Use `sample.csv` to test the dashboard features:
 
 ### Technologies Used
 - Pure HTML/CSS/JavaScript (no framework dependencies)
+- [Chart.js 4.4.0](https://www.chartjs.org/) for interactive data visualization
 - [SheetJS](https://sheetjs.com/) for Excel export
 - LocalStorage API for data persistence
 - CSS Grid & Flexbox for responsive layout
 
 ### File Size
-- HTML: ~112 KB (single file, includes all functionality)
+- HTML: ~175 KB (single file, includes all functionality)
 - No external dependencies required at runtime
-- SheetJS library loaded from CDN for Excel export
-- Fully self-contained with mobile-responsive CSS and intelligent tooltips
+- Chart.js and SheetJS libraries loaded from CDN
+- Fully self-contained with mobile-responsive CSS, intelligent tooltips, and interactive charts
 
 ### Recent Updates
 
-#### v1.2 (Latest)
+#### v1.3 (Latest)
+- **📈 KPI Charts Tab**: Brand new visual analytics dashboard
+  - **Team Performance Chart**: Grouped bar chart showing case count and revenue (Expected/Recognized) by team with dual Y-axis
+  - **Sales Ranking Chart**: Horizontal bar chart displaying Top 10 sales by revenue with interactive drill-down
+  - **Presales Performance Chart**: Mixed chart (stacked bar + line) showing Top 10 PS workload with ToDo/InProgress/Done breakdown and completion rate
+  - **Technical Support Performance Chart**: Mixed chart showing Top 10 TS workload with status breakdown and completion rate
+  - Click on any chart element to jump to the corresponding tab with auto-filtering
+- **Multi-Column Personnel Support**: Enhanced data processing for Presales and Technical Support
+  - Presales: Reads 5 columns (PS, PS1, PS2, PS3, PS4) with automatic deduplication
+  - Technical Support: Reads 3 columns (TS, TS1, TS2) with automatic deduplication
+  - Prevents double-counting when same person appears in multiple columns
+- **Enhanced HTML Export**: KPI Charts now included in downloadable reports
+  - Charts rendered as high-quality PNG images in Executive Summary section
+  - 2x2 responsive grid layout for professional presentations
+- **Refreshed Icon Set**: Updated all tab icons for better visual distinction
+  - 💰 Sales | 💡 Presales | 🛠️ Technical Support | 📅 Due Date | 📈 KPI Charts
+- **Technology Stack**: Integrated Chart.js 4.4.0 for interactive data visualization
+
+#### v1.2
 - **Separated Filtering UI**: Team dropdown + Name search for Sales tab
   - Team filter uses exact match (select "C" shows only Team C members)
   - Name search uses fuzzy match (search "Chen" finds all people with "Chen" in name)
