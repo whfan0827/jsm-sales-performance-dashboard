@@ -3531,10 +3531,22 @@
 
         // Chart 1: Team Performance Overview
         function createTeamChart(teamData) {
-            const teams = Object.keys(teamData);
-            const caseCounts = teams.map(team => teamData[team].caseCount);
-            const expectedRevenue = teams.map(team => teamData[team].expectedRevenue);
-            const recognizedRevenue = teams.map(team => teamData[team].recognizedRevenue);
+            // Convert to array and sort by case count (descending)
+            const teamArray = Object.entries(teamData).map(([team, data]) => ({
+                team: team,
+                caseCount: data.caseCount,
+                expectedRevenue: data.expectedRevenue,
+                recognizedRevenue: data.recognizedRevenue
+            }));
+
+            // Sort by case count descending
+            teamArray.sort((a, b) => b.caseCount - a.caseCount);
+
+            // Extract sorted data
+            const teams = teamArray.map(item => item.team);
+            const caseCounts = teamArray.map(item => item.caseCount);
+            const expectedRevenue = teamArray.map(item => item.expectedRevenue);
+            const recognizedRevenue = teamArray.map(item => item.recognizedRevenue);
 
             const ctx = document.getElementById('teamChart').getContext('2d');
             return new Chart(ctx, {
