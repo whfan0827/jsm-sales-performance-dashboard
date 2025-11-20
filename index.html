@@ -3531,7 +3531,7 @@
 
         // Chart 1: Team Performance Overview
         function createTeamChart(teamData) {
-            // Convert to array and sort by case count (descending)
+            // Convert to array and sort by recognized revenue (descending)
             const teamArray = Object.entries(teamData).map(([team, data]) => ({
                 team: team,
                 caseCount: data.caseCount,
@@ -3539,8 +3539,8 @@
                 recognizedRevenue: data.recognizedRevenue
             }));
 
-            // Sort by case count descending
-            teamArray.sort((a, b) => b.caseCount - a.caseCount);
+            // Sort by recognized revenue descending (highest revenue on the left)
+            teamArray.sort((a, b) => b.recognizedRevenue - a.recognizedRevenue);
 
             // Extract sorted data
             const teams = teamArray.map(item => item.team);
