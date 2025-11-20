@@ -2377,9 +2377,9 @@
                 // Remove duplicates (same person might appear in multiple columns)
                 presalesList = [...new Set(presalesList)];
 
-                // If no PS assigned, mark as Unassigned
+                // If no PS assigned, skip this case (don't count as Unassigned)
                 if (presalesList.length === 0) {
-                    presalesList = ['Unassigned'];
+                    return;  // Skip cases without PS assignment
                 }
 
                 // Count for each Presales person
@@ -2722,9 +2722,9 @@
                 // Remove duplicates (same person might appear in multiple columns)
                 techsupportList = [...new Set(techsupportList)];
 
-                // If no TS assigned, mark as Unassigned
+                // If no TS assigned, skip this case (don't count as Unassigned)
                 if (techsupportList.length === 0) {
-                    techsupportList = ['Unassigned'];
+                    return;  // Skip cases without TS assignment
                 }
 
                 // Count for each Technical Support person
