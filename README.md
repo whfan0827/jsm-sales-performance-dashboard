@@ -16,7 +16,7 @@ A powerful, interactive dashboard for analyzing Jira Service Management sales da
 - **💡 Presales Statistics**: Monitor presales team workload with KPI support (default KPI: 8)
 - **🛠️ Technical Support Statistics**: Track technical support team workload with KPI support (default KPI: 8)
 - **📅 Due Date Summary**: View upcoming deadlines with customizable time range (1-24 months, default: 3 months)
-- **📈 KPI Charts**: Interactive visual analytics with 4 dynamic charts for performance tracking
+- **📈 KPI Charts**: Interactive visual analytics with 5 dynamic charts for performance tracking
 
 ### 🎯 Key Capabilities
 - **Customizable KPIs**: Set individual or global KPI targets for each team member within their respective tabs
@@ -118,6 +118,7 @@ Hover over the ℹ icon next to each tab title to see detailed information about
   - Sales Ranking: Top 10 sales by revenue
   - Presales Performance: Top 10 PS by case count and completion rate
   - Technical Support Performance: Top 10 TS by case count and completion rate
+  - Cumulative Due Date Trend: Full-width stacked bar + line chart showing cumulative cases over all months
   - Click on chart elements to drill down to detailed data
 
 ### Setting KPIs
@@ -140,7 +141,7 @@ Hover over the ℹ icon next to each tab title to see detailed information about
 - **Excel**: Exports all data from all five tabs (Sales, Presales, Technical Support, Due Date Summary, KPI Charts data)
 - **HTML**: Generates a professional complete report with:
   - Executive Summary section with aggregated metrics
-  - KPI Charts section with 4 visual charts (Team, Sales, PS, TS)
+  - KPI Charts section with 5 visual charts (Team, Sales, PS, TS, Cumulative Due Date Trend)
   - All personnel from Sales/Presales/Technical Support (no pagination)
   - Data sorted by Achievement Rate for easy performance review
   - Due Date Summary with your selected month range
@@ -193,7 +194,23 @@ Use `sample.csv` to test the dashboard features:
 
 ### Recent Updates
 
-#### v1.3 (Latest)
+#### v1.4 (Latest)
+- **📊 Cumulative Due Date Trend Chart**: New 5th chart in KPI Charts tab
+  - **Mixed Visualization**: Stacked bar chart + line chart showing cumulative due date case trends over time
+  - **Comprehensive Time Range**: Displays ALL months present in your data (not limited by Due Date Summary settings)
+  - **Stacked Bars**:
+    - Green (bottom) = Cumulative Completed cases (status: Done)
+    - Orange (top) = Cumulative Remaining cases (status: In Progress + To Do)
+  - **Red Line**: Cumulative Total showing overall trend
+  - **Enhanced Tooltip**: Shows monthly new cases count when hovering over data points
+  - **Interactive**: Click anywhere on chart to jump to Due Date Summary tab for detailed breakdown
+  - **Full-Width Layout**: Occupies entire row below the 2x2 chart grid for better visibility
+  - **Independent Data Source**: Uses separate `allDueDateData` to ensure all historical months are displayed
+- **Data Architecture Improvement**: Refactored `displayDueDateSummary()` to generate both limited (for table) and complete (for charts) datasets
+- **Improved Terminology**: Changed "Pending" to "Remaining" for clearer understanding
+- **Clear Documentation**: Enhanced info tooltip explaining calculation methodology for each dataset
+
+#### v1.3
 - **📈 KPI Charts Tab**: Brand new visual analytics dashboard
   - **Team Performance Chart**: Grouped bar chart showing case count and revenue (Expected/Recognized) by team with dual Y-axis
   - **Sales Ranking Chart**: Horizontal bar chart displaying Top 10 sales by revenue with interactive drill-down

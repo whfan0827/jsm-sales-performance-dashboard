@@ -981,6 +981,16 @@
             cursor: pointer;
         }
 
+        /* Full-width chart (for cumulative trend) */
+        .chart-full-width {
+            grid-column: 1 / -1;
+            margin-top: 30px;
+        }
+
+        #cumulativeDueDateChart {
+            min-height: 350px;
+        }
+
         /* Responsive: Single column on mobile */
         @media (max-width: 768px) {
             .charts-grid {
@@ -1294,6 +1304,14 @@
                             <canvas id="tsChart"></canvas>
                         </div>
                     </div>
+
+                    <!-- Chart 5: Cumulative Due Date Trend (FULL WIDTH) -->
+                    <div class="chart-container chart-full-width">
+                        <h3>Cumulative Due Date Trend
+                            <span class="info-icon" data-tooltip="Shows cumulative due cases over time (all months in data). Red line = Cumulative Total: all due date cases accumulated from first month to current month. Green bar = Cumulative Completed: cases with status 'Done'. Orange bar = Cumulative Remaining: cases with status 'In Progress' or 'To Do'. Click to view detailed Due Date Summary.">ℹ</span>
+                        </h3>
+                        <canvas id="cumulativeDueDateChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -1305,7 +1323,7 @@
         </div>
 
         <footer>
-            <p>Created by Vincent Fan | Version 1.3</p>
+            <p>Created by Vincent Fan | Version 1.4</p>
         </footer>
     </div>
 
@@ -1331,7 +1349,8 @@
         let techsupportKpiTargets = {};  // Store individual Technical Support KPI targets
 
         // DueDate related variables
-        let dueDateData = null;
+        let dueDateData = null;  // Limited to dueDateMonths (for Due Date Summary table)
+        let allDueDateData = null;  // All months in data (for Cumulative Chart)
         let allDueDateRows = [];
         let dueDateMonths = 3;  // Number of months to display (default 3)
 
@@ -3154,26 +3173,9 @@
 
         // Display DueDate Summary
         function displayDueDateSummary(data) {
-            const now = new Date();
-            const months = [];
-
-            // Build months based on dueDateMonths setting
-            for (let i = 0; i < dueDateMonths; i++) {
-                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                let displayLabel;
-                if (i === 0) {
-                    displayLabel = 'This Month';
-                } else if (i === 1) {
-                    displayLabel = 'Next Month';
-                } else {
-                    displayLabel = `+${i} Months`;
-                }
-                months.push({ label, displayLabel });
-            }
-
-            // Initialize statistics structure: by sales -> month -> status
-            const summary = {};
+            // Step 1: Extract all months from data and build complete summary
+            const allMonthsSet = new Set();
+            const allSummary = {};
 
             data.forEach(item => {
                 // Get sales person
@@ -3185,7 +3187,7 @@
                 const dueDate = item['Due date'] || item['DueDate'] || item['Due Date'] || '';
                 if (!dueDate) return;
 
-                // Parse date using mobile-compatible function
+                // Parse date
                 const parsedDate = parseDateString(dueDate);
                 if (!parsedDate) return;
 
@@ -3193,31 +3195,64 @@
                 const dueMonth = parsedDate.getMonth() + 1;
                 const monthLabel = `${dueYear}-${String(dueMonth).padStart(2, '0')}`;
 
-                // Check if within the specified months range
-                const monthInfo = months.find(m => m.label === monthLabel);
-                if (!monthInfo) return;
+                // Add to months set
+                allMonthsSet.add(monthLabel);
 
-                // Initialize sales record
-                if (!summary[sales]) {
-                    summary[sales] = {};
-                    months.forEach(m => {
-                        summary[sales][m.label] = { total: 0, todo: 0, inprogress: 0, done: 0 };
-                    });
+                // Initialize sales record if needed
+                if (!allSummary[sales]) {
+                    allSummary[sales] = {};
+                }
+                if (!allSummary[sales][monthLabel]) {
+                    allSummary[sales][monthLabel] = { total: 0, todo: 0, inprogress: 0, done: 0 };
                 }
 
                 // Calculate status
                 const status = (item['Status'] || '').trim();
                 const category = classifyStatus(status);
 
-                summary[sales][monthLabel].total++;
-                if (category === 'ToDo') summary[sales][monthLabel].todo++;
-                else if (category === 'InProgress') summary[sales][monthLabel].inprogress++;
-                else if (category === 'Done') summary[sales][monthLabel].done++;
+                allSummary[sales][monthLabel].total++;
+                if (category === 'ToDo') allSummary[sales][monthLabel].todo++;
+                else if (category === 'InProgress') allSummary[sales][monthLabel].inprogress++;
+                else if (category === 'Done') allSummary[sales][monthLabel].done++;
             });
 
-            dueDateData = summary;
-            allDueDateRows = Object.keys(summary).sort();
-            renderDueDateTable(summary, months);
+            // Store complete data for Cumulative Chart (all months)
+            allDueDateData = allSummary;
+
+            // Step 2: Build limited months list for table display
+            const now = new Date();
+            const displayMonths = [];
+
+            for (let i = 0; i < dueDateMonths; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                let displayLabel;
+                if (i === 0) {
+                    displayLabel = 'This Month';
+                } else if (i === 1) {
+                    displayLabel = 'Next Month';
+                } else {
+                    displayLabel = `+${i} Months`;
+                }
+                displayMonths.push({ label, displayLabel });
+            }
+
+            // Step 3: Filter data for table display (limited months)
+            const limitedSummary = {};
+            Object.keys(allSummary).forEach(sales => {
+                limitedSummary[sales] = {};
+                displayMonths.forEach(m => {
+                    if (allSummary[sales][m.label]) {
+                        limitedSummary[sales][m.label] = allSummary[sales][m.label];
+                    } else {
+                        limitedSummary[sales][m.label] = { total: 0, todo: 0, inprogress: 0, done: 0 };
+                    }
+                });
+            });
+
+            dueDateData = limitedSummary;
+            allDueDateRows = Object.keys(limitedSummary).sort();
+            renderDueDateTable(limitedSummary, displayMonths);
         }
 
         // Render DueDate Table
@@ -3382,7 +3417,7 @@
         // ===== KPI Charts Data Processing Functions =====
 
         // Global variables for chart instances
-        let teamChart, salesChart, psChart, tsChart;
+        let teamChart, salesChart, psChart, tsChart, cumulativeDueDateChart;
 
         // Aggregate Team Data
         function aggregateTeamData(salesInfo) {
@@ -3471,6 +3506,65 @@
             return tsArray.slice(0, 10);
         }
 
+        // Prepare Cumulative Due Date Data
+        function prepareCumulativeDueDateData() {
+            if (!allDueDateData) return null;
+
+            // Extract all actual months from allDueDateData
+            const monthSet = new Set();
+            Object.values(allDueDateData).forEach(salesData => {
+                Object.keys(salesData).forEach(month => {
+                    monthSet.add(month);
+                });
+            });
+
+            // Sort months chronologically and use ALL months
+            const months = Array.from(monthSet).sort();
+            console.log('Cumulative Chart - Displaying all months:', months);
+
+            // Calculate cumulative data
+            const cumulativeTotal = [];
+            const cumulativeCompleted = [];
+            const cumulativePending = [];
+            const monthlyNew = [];  // Track monthly new cases
+
+            let cumulativeTotalSum = 0;
+            let cumulativeCompletedSum = 0;
+
+            months.forEach(monthLabel => {
+                let monthTotal = 0;
+                let monthDone = 0;
+
+                // Aggregate data from all sales people
+                Object.values(allDueDateData).forEach(salesData => {
+                    const data = salesData[monthLabel];
+                    if (data) {
+                        monthTotal += data.total;
+                        monthDone += data.done;
+                    }
+                });
+
+                // Store monthly new cases
+                monthlyNew.push(monthTotal);
+
+                // Cumulative calculations
+                cumulativeTotalSum += monthTotal;
+                cumulativeCompletedSum += monthDone;
+
+                cumulativeTotal.push(cumulativeTotalSum);
+                cumulativeCompleted.push(cumulativeCompletedSum);
+                cumulativePending.push(cumulativeTotalSum - cumulativeCompletedSum);
+            });
+
+            return {
+                months,
+                cumulativeTotal,
+                cumulativeCompleted,
+                cumulativePending,
+                monthlyNew
+            };
+        }
+
         // Tab switching function
         function switchTab(tabName) {
             // Hide all tabs
@@ -3515,18 +3609,21 @@
             if (salesChart) salesChart.destroy();
             if (psChart) psChart.destroy();
             if (tsChart) tsChart.destroy();
+            if (cumulativeDueDateChart) cumulativeDueDateChart.destroy();
 
             // Prepare data
             const teamData = aggregateTeamData(analyzedData);
             const salesRanking = prepareSalesRanking(analyzedData);
             const psData = preparePSData(presalesData);
             const tsData = prepareTSData(techsupportData);
+            const cumulativeData = prepareCumulativeDueDateData();
 
             // Render charts
             teamChart = createTeamChart(teamData);
             salesChart = createSalesChart(salesRanking);
             psChart = createPSChart(psData);
             tsChart = createTSChart(tsData);
+            cumulativeDueDateChart = createCumulativeDueDateChart(cumulativeData);
         }
 
         // Chart 1: Team Performance Overview
@@ -3945,6 +4042,137 @@
             });
         }
 
+        // Chart 5: Cumulative Due Date Trend (Mixed Bar + Line)
+        function createCumulativeDueDateChart(data) {
+            if (!data) return null;
+
+            const ctx = document.getElementById('cumulativeDueDateChart').getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.months,
+                    datasets: [
+                        // Dataset 1: Cumulative Completed (Stacked Bar - Bottom)
+                        {
+                            type: 'bar',
+                            label: 'Cumulative Completed',
+                            data: data.cumulativeCompleted,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0',
+                            order: 3
+                        },
+                        // Dataset 2: Cumulative Remaining (Stacked Bar - Top)
+                        {
+                            type: 'bar',
+                            label: 'Cumulative Remaining',
+                            data: data.cumulativePending,
+                            backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0',
+                            order: 3
+                        },
+                        // Dataset 3: Cumulative Total (Line)
+                        {
+                            type: 'line',
+                            label: 'Cumulative Total',
+                            data: data.cumulativeTotal,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    onClick: (event, elements) => {
+                        switchTab('duedate');
+                    },
+                    scales: {
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cases Count',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    return `${label}: ${value.toLocaleString()}`;
+                                },
+                                afterBody: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const monthlyNewCases = data.monthlyNew[index];
+                                    return `\nMonthly New Cases: ${monthlyNewCases.toLocaleString()}`;
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function downloadPDF() {
             window.print();
         }
@@ -3981,9 +4209,10 @@
                     const salesCanvas = document.getElementById('salesChart');
                     const psCanvas = document.getElementById('psChart');
                     const tsCanvas = document.getElementById('tsChart');
+                    const cumulativeCanvas = document.getElementById('cumulativeDueDateChart');
 
                     // Check if canvases exist
-                    if (!teamCanvas || !salesCanvas || !psCanvas || !tsCanvas) {
+                    if (!teamCanvas || !salesCanvas || !psCanvas || !tsCanvas || !cumulativeCanvas) {
                         console.error('One or more chart canvases not found');
                         return '<p style="color: red;">KPI Charts could not be generated - canvas elements not found</p>';
                     }
@@ -3993,6 +4222,7 @@
                     let salesImg = '';
                     let psImg = '';
                     let tsImg = '';
+                    let cumulativeImg = '';
 
                     try {
                         teamImg = teamCanvas.toDataURL('image/png');
@@ -4034,6 +4264,16 @@
                         console.error('Error converting TS chart:', e);
                     }
 
+                    try {
+                        cumulativeImg = cumulativeCanvas.toDataURL('image/png');
+                        if (!cumulativeImg || cumulativeImg === 'data:,') {
+                            console.error('Cumulative chart canvas is empty');
+                            cumulativeImg = '';
+                        }
+                    } catch (e) {
+                        console.error('Error converting cumulative chart:', e);
+                    }
+
                     // Generate HTML with fallback messages for missing images
                     return `
                     <div class="kpi-charts-section">
@@ -4054,6 +4294,14 @@
                             <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                                 <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">Technical Support Performance</h3>
                                 ${tsImg ? `<img src="${tsImg}" style="width: 100%; height: auto;" alt="Technical Support Performance Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
+                            </div>
+                        </div>
+
+                        <!-- Cumulative Chart (Full Width) -->
+                        <div style="margin-top: 30px;">
+                            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">Cumulative Due Date Trend</h3>
+                                ${cumulativeImg ? `<img src="${cumulativeImg}" style="width: 100%; height: auto;" alt="Cumulative Due Date Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
                             </div>
                         </div>
                     </div>
@@ -4473,7 +4721,7 @@
         <!-- Report Footer -->
         <div class="report-footer">
             <p><strong>JSM Dashboard - Performance Report</strong></p>
-            <p>Created by Vincent Fan | Version 1.3</p>
+            <p>Created by Vincent Fan | Version 1.4</p>
             <p>This is an automated report generated from Jira Service Management data.</p>
         </div>
     </div>
