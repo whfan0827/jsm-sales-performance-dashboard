@@ -1312,6 +1312,14 @@
                         </h3>
                         <canvas id="cumulativeDueDateChart"></canvas>
                     </div>
+
+                    <!-- Chart 6: Project Type Revenue Analysis (FULL WIDTH) -->
+                    <div class="chart-container chart-full-width">
+                        <h3>💼 Project Type Revenue Analysis
+                            <span class="info-icon" data-tooltip="Revenue breakdown by project type: AI (AI-related projects), Information Security (security and MDC projects), and Azure (migration, modernization, and other Azure services). Shows total revenue and case count for each category.">ℹ</span>
+                        </h3>
+                        <canvas id="projectTypeChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -1323,7 +1331,7 @@
         </div>
 
         <footer>
-            <p>Created by Vincent Fan | Version 1.4</p>
+            <p>Created by Vincent Fan | Version 1.5</p>
         </footer>
     </div>
 
@@ -3417,7 +3425,7 @@
         // ===== KPI Charts Data Processing Functions =====
 
         // Global variables for chart instances
-        let teamChart, salesChart, psChart, tsChart, cumulativeDueDateChart;
+        let teamChart, salesChart, psChart, tsChart, cumulativeDueDateChart, projectTypeChart;
 
         // Aggregate Team Data
         function aggregateTeamData(salesInfo) {
@@ -3565,6 +3573,104 @@
             };
         }
 
+        // Prepare Project Type Revenue Data
+        function prepareProjectTypeData(csvData) {
+            const typeStats = {
+                'AI': {
+                    caseCount: 0,
+                    totalRevenue: 0,
+                    doneRevenue: 0,
+                    inProgressRevenue: 0,
+                    todoRevenue: 0,
+                    casesWithFunding: 0,
+                    doneCases: 0,
+                    inProgressCases: 0,
+                    todoCases: 0
+                },
+                'Information Security': {
+                    caseCount: 0,
+                    totalRevenue: 0,
+                    doneRevenue: 0,
+                    inProgressRevenue: 0,
+                    todoRevenue: 0,
+                    casesWithFunding: 0,
+                    doneCases: 0,
+                    inProgressCases: 0,
+                    todoCases: 0
+                },
+                'Azure': {
+                    caseCount: 0,
+                    totalRevenue: 0,
+                    doneRevenue: 0,
+                    inProgressRevenue: 0,
+                    todoRevenue: 0,
+                    casesWithFunding: 0,
+                    doneCases: 0,
+                    inProgressCases: 0,
+                    todoCases: 0
+                }
+            };
+
+            csvData.forEach(row => {
+                const summary = row['Summary'] || '';
+                const funding = parseFloat(row['Custom field (MMPJ_MCI_funding(num))']) || 0;
+                const status = (row['Status'] || '').trim();
+
+                // Classify project type (priority order: AI -> Security -> Azure)
+                let projectType;
+                if (summary.includes('[MCI-AI]') || summary.includes('AI, Agents & Dev')) {
+                    projectType = 'AI';
+                } else if (summary.includes('[MCI-Security]') || summary.includes('Microsoft Sentinel')) {
+                    projectType = 'Information Security';
+                } else {
+                    projectType = 'Azure';
+                }
+
+                // Classify status
+                const category = classifyStatus(status);
+
+                // Update statistics
+                typeStats[projectType].caseCount++;
+                typeStats[projectType].totalRevenue += funding;
+
+                if (funding > 0) {
+                    typeStats[projectType].casesWithFunding++;
+                }
+
+                // Track revenue and cases by status
+                if (category === 'Done') {
+                    typeStats[projectType].doneRevenue += funding;
+                    typeStats[projectType].doneCases++;
+                } else if (category === 'InProgress') {
+                    typeStats[projectType].inProgressRevenue += funding;
+                    typeStats[projectType].inProgressCases++;
+                } else if (category === 'ToDo') {
+                    typeStats[projectType].todoRevenue += funding;
+                    typeStats[projectType].todoCases++;
+                }
+            });
+
+            // Convert to array and sort by total revenue (descending)
+            const typeArray = Object.entries(typeStats).map(([type, stats]) => ({
+                type: type,
+                caseCount: stats.caseCount,
+                totalRevenue: stats.totalRevenue,
+                doneRevenue: stats.doneRevenue,
+                inProgressRevenue: stats.inProgressRevenue,
+                todoRevenue: stats.todoRevenue,
+                casesWithFunding: stats.casesWithFunding,
+                casesWithoutFunding: stats.caseCount - stats.casesWithFunding,
+                avgRevenue: stats.casesWithFunding > 0 ? stats.totalRevenue / stats.casesWithFunding : 0,
+                doneCases: stats.doneCases,
+                inProgressCases: stats.inProgressCases,
+                todoCases: stats.todoCases
+            }));
+
+            typeArray.sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+            return typeArray;
+        }
+
         // Tab switching function
         function switchTab(tabName) {
             // Hide all tabs
@@ -3610,6 +3716,7 @@
             if (psChart) psChart.destroy();
             if (tsChart) tsChart.destroy();
             if (cumulativeDueDateChart) cumulativeDueDateChart.destroy();
+            if (projectTypeChart) projectTypeChart.destroy();
 
             // Prepare data
             const teamData = aggregateTeamData(analyzedData);
@@ -3617,6 +3724,7 @@
             const psData = preparePSData(presalesData);
             const tsData = prepareTSData(techsupportData);
             const cumulativeData = prepareCumulativeDueDateData();
+            const projectTypeData = window.currentData ? prepareProjectTypeData(window.currentData) : null;
 
             // Render charts
             teamChart = createTeamChart(teamData);
@@ -3624,6 +3732,7 @@
             psChart = createPSChart(psData);
             tsChart = createTSChart(tsData);
             cumulativeDueDateChart = createCumulativeDueDateChart(cumulativeData);
+            projectTypeChart = createProjectTypeChart(projectTypeData);
         }
 
         // Chart 1: Team Performance Overview
@@ -4173,6 +4282,177 @@
             });
         }
 
+        // Chart 6: Project Type Revenue Analysis
+        function createProjectTypeChart(data) {
+            if (!data || data.length === 0) return null;
+
+            // Extract data
+            const types = data.map(item => item.type);
+            const doneRevenues = data.map(item => item.doneRevenue);
+            const inProgressRevenues = data.map(item => item.inProgressRevenue);
+            const todoRevenues = data.map(item => item.todoRevenue);
+            const caseCounts = data.map(item => item.caseCount);
+
+            const ctx = document.getElementById('projectTypeChart').getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: types,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Done Revenue',
+                            data: doneRevenues,
+                            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            stack: 'revenue',
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'In Progress Revenue',
+                            data: inProgressRevenues,
+                            backgroundColor: 'rgba(255, 159, 64, 0.8)',
+                            borderColor: 'rgba(255, 159, 64, 1)',
+                            borderWidth: 1,
+                            stack: 'revenue',
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'bar',
+                            label: 'To Do Revenue',
+                            data: todoRevenues,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            stack: 'revenue',
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Case Count',
+                            data: caseCounts,
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Total Revenue (USD)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Case Count',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                stepSize: 5
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return data[index].type + ' Projects';
+                                },
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    const item = data[index];
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+
+                                    if (context.dataset.type === 'line') {
+                                        return `${label}: ${value} cases`;
+                                    } else {
+                                        return `${label}: $${value.toLocaleString()}`;
+                                    }
+                                },
+                                afterBody: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const item = data[index];
+                                    const fundingRate = item.caseCount > 0 ?
+                                        ((item.casesWithFunding / item.caseCount) * 100).toFixed(1) : 0;
+                                    const doneRate = item.totalRevenue > 0 ?
+                                        ((item.doneRevenue / item.totalRevenue) * 100).toFixed(1) : 0;
+
+                                    return [
+                                        '─────────────────────────',
+                                        `💰 Total Revenue: $${item.totalRevenue.toLocaleString()}`,
+                                        `📊 Revenue Realization: ${doneRate}% (Done)`,
+                                        `💵 Avg per Case: $${item.avgRevenue.toLocaleString(undefined, {maximumFractionDigits: 0})}`,
+                                        `✔️ With Funding: ${item.casesWithFunding} cases (${fundingRate}%)`,
+                                        `❌ Without Funding: ${item.casesWithoutFunding} cases`
+                                    ];
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function downloadPDF() {
             window.print();
         }
@@ -4210,9 +4490,10 @@
                     const psCanvas = document.getElementById('psChart');
                     const tsCanvas = document.getElementById('tsChart');
                     const cumulativeCanvas = document.getElementById('cumulativeDueDateChart');
+                    const projectTypeCanvas = document.getElementById('projectTypeChart');
 
                     // Check if canvases exist
-                    if (!teamCanvas || !salesCanvas || !psCanvas || !tsCanvas || !cumulativeCanvas) {
+                    if (!teamCanvas || !salesCanvas || !psCanvas || !tsCanvas || !cumulativeCanvas || !projectTypeCanvas) {
                         console.error('One or more chart canvases not found');
                         return '<p style="color: red;">KPI Charts could not be generated - canvas elements not found</p>';
                     }
@@ -4223,6 +4504,7 @@
                     let psImg = '';
                     let tsImg = '';
                     let cumulativeImg = '';
+                    let projectTypeImg = '';
 
                     try {
                         teamImg = teamCanvas.toDataURL('image/png');
@@ -4274,6 +4556,16 @@
                         console.error('Error converting cumulative chart:', e);
                     }
 
+                    try {
+                        projectTypeImg = projectTypeCanvas.toDataURL('image/png');
+                        if (!projectTypeImg || projectTypeImg === 'data:,') {
+                            console.error('Project type chart canvas is empty');
+                            projectTypeImg = '';
+                        }
+                    } catch (e) {
+                        console.error('Error converting project type chart:', e);
+                    }
+
                     // Generate HTML with fallback messages for missing images
                     return `
                     <div class="kpi-charts-section">
@@ -4302,6 +4594,14 @@
                             <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                                 <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">Cumulative Due Date Trend</h3>
                                 ${cumulativeImg ? `<img src="${cumulativeImg}" style="width: 100%; height: auto;" alt="Cumulative Due Date Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
+                            </div>
+                        </div>
+
+                        <!-- Project Type Chart (Full Width) -->
+                        <div style="margin-top: 30px;">
+                            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <h3 style="font-size: 16px; color: #333; margin-bottom: 15px; text-align: center; font-weight: 600;">💼 Project Type Revenue Analysis</h3>
+                                ${projectTypeImg ? `<img src="${projectTypeImg}" style="width: 100%; height: auto;" alt="Project Type Revenue Chart">` : '<p style="color: #999; text-align: center;">Chart not available</p>'}
                             </div>
                         </div>
                     </div>
@@ -4721,7 +5021,7 @@
         <!-- Report Footer -->
         <div class="report-footer">
             <p><strong>JSM Dashboard - Performance Report</strong></p>
-            <p>Created by Vincent Fan | Version 1.4</p>
+            <p>Created by Vincent Fan | Version 1.5</p>
             <p>This is an automated report generated from Jira Service Management data.</p>
         </div>
     </div>

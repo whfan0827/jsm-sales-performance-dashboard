@@ -194,7 +194,28 @@ Use `sample.csv` to test the dashboard features:
 
 ### Recent Updates
 
-#### v1.4 (Latest)
+#### v1.5 (Latest)
+- **💼 Project Type Revenue Analysis Chart**: New 6th chart in KPI Charts tab
+  - **Three-Category Classification**: Automatically categorizes all cases into AI, Information Security, or Azure
+    - **AI**: Cases containing "[MCI-AI]" or "AI, Agents & Dev"
+    - **Information Security**: Cases containing "[MCI-Security]" or "Microsoft Sentinel"
+    - **Azure**: All other Azure services (AMM, Migration, VDI, etc.)
+  - **Stacked Revenue Visualization**: Shows revenue breakdown by case status
+    - Green (bottom) = Done Revenue (completed cases)
+    - Orange (middle) = In Progress Revenue (active cases)
+    - Blue (top) = To Do Revenue (pending cases)
+  - **Case Count Line**: Purple line chart overlays case quantity for each type
+  - **Enhanced Tooltip**: Displays comprehensive statistics
+    - Total Revenue with status breakdown
+    - Revenue Realization Rate (percentage of completed revenue)
+    - Average revenue per case
+    - Funding coverage (cases with/without funding amounts)
+  - **Full-Width Layout**: Positioned below Cumulative Chart for optimal visibility
+  - **Business Insights**: Enables quick assessment of revenue distribution and completion rates across project types
+- **Optimized Tooltip Information**: Removed duplicate data entries from chart tooltips for cleaner, more focused display
+- **Smart Data Classification**: Automatic project type detection based on Summary field keywords
+
+#### v1.4
 - **📊 Cumulative Due Date Trend Chart**: New 5th chart in KPI Charts tab
   - **Mixed Visualization**: Stacked bar chart + line chart showing cumulative due date case trends over time
   - **Comprehensive Time Range**: Displays ALL months present in your data (not limited by Due Date Summary settings)
