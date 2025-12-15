@@ -194,7 +194,27 @@ Use `sample.csv` to test the dashboard features:
 
 ### Recent Updates
 
-#### v1.5 (Latest)
+#### v1.6 (Latest)
+- **📄 Table Pagination System**: Enhanced data navigation for Sales, Presales, and Technical Support tables
+  - **Previous/Next Navigation**: Browse through large datasets with intuitive pagination controls
+  - **Page Information Display**: Shows current page, total pages, and item count (e.g., "Page 2 of 5 (43 items)")
+  - **Smart Visibility**: Pagination controls auto-hide when viewing all data or single page
+  - **Right-Aligned Layout**: Controls positioned on the right side for better visual flow
+  - **Interactive Buttons**: Cursor changes to pointer on hover with visual feedback
+  - **Auto-Reset**: Returns to page 1 when changing page size or applying filters
+  - **Default Display**: Shows 10 items per page for optimal viewing
+- **📊 Enhanced Project Type Chart**: Improved visualization and clarity
+  - **Total Bars**: Added summary bars for each project type (AI-Total, Security-Total, Azure-Total)
+  - **Visual Distinction**: Total bars highlighted with red borders for easy identification
+  - **Comprehensive X-Axis Labels**: Shows both type and size (e.g., "AI-S", "Security-M", "Azure-L")
+  - **Abbreviated Display**: Uses single letters for sizes (S/M/L) and "Security" for Information Security
+  - **Clear Categorization**: Instantly identify which type and size each bar represents
+- **📈 Chart Layer Optimization**: Improved visibility of completion rate trends
+  - **Presales Performance**: Completion rate curve now displays above stacked bars
+  - **Technical Support Performance**: Completion rate curve now displays above stacked bars
+  - **Better Trend Visibility**: Line charts positioned on top layer for clearer analysis
+
+#### v1.5
 - **💼 Project Type Revenue Analysis Chart**: New 6th chart in KPI Charts tab
   - **Three-Category Classification**: Automatically categorizes all cases into AI, Information Security, or Azure
     - **AI**: Cases containing "[MCI-AI]" or "AI, Agents & Dev"
