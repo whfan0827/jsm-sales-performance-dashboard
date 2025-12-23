@@ -4189,6 +4189,7 @@
             const names = salesRanking.map(s => s.name);
             const expectedRevenue = salesRanking.map(s => s.expectedRevenue);
             const recognizedRevenue = salesRanking.map(s => s.recognizedRevenue);
+            const caseCount = salesRanking.map(s => s.caseCount);
 
             const ctx = document.getElementById('salesChart').getContext('2d');
             return new Chart(ctx, {
@@ -4201,14 +4202,32 @@
                             data: expectedRevenue,
                             backgroundColor: 'rgba(255, 159, 64, 0.7)',
                             borderColor: 'rgba(255, 159, 64, 1)',
-                            borderWidth: 1
+                            borderWidth: 1,
+                            xAxisID: 'x',
+                            order: 2
                         },
                         {
                             label: 'Recognized Revenue',
                             data: recognizedRevenue,
                             backgroundColor: 'rgba(75, 192, 192, 0.7)',
                             borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
+                            borderWidth: 1,
+                            xAxisID: 'x',
+                            order: 2
+                        },
+                        {
+                            label: 'Case Count',
+                            data: caseCount,
+                            type: 'line',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(255, 255, 255, 1)',
+                            pointBorderColor: 'rgba(153, 102, 255, 1)',
+                            pointBorderWidth: 2,
+                            xAxisID: 'x1',
+                            tension: 0.4,
+                            order: 1
                         }
                     ]
                 },
@@ -4238,6 +4257,32 @@
                                     return '$' + value.toLocaleString();
                                 }
                             }
+                        },
+                        x1: {
+                            type: 'linear',
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: 'Case Count'
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                stepSize: 1,
+                                callback: function(value) {
+                                    if (Number.isInteger(value)) {
+                                        return value;
+                                    }
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            min: 0,
+                            max: Math.max(...caseCount) * 1.1,
+                            afterDataLimits: (scale) => {
+                                scale.max = Math.max(...caseCount) * 1.1;
+                                scale.min = 0;
+                            }
                         }
                     },
                     plugins: {
@@ -4248,7 +4293,11 @@
                                     if (label) {
                                         label += ': ';
                                     }
-                                    label += '$' + context.parsed.x.toLocaleString();
+                                    if (label.includes('Revenue')) {
+                                        label += '$' + context.parsed.x.toLocaleString();
+                                    } else {
+                                        label += context.parsed.x.toLocaleString();
+                                    }
                                     return label;
                                 }
                             }
