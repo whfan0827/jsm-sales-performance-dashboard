@@ -1384,7 +1384,7 @@
                     <!-- Chart 6: Project Type Revenue Analysis (FULL WIDTH) -->
                     <div class="chart-container chart-full-width">
                         <h3>💼 Project Type Revenue Analysis
-                            <span class="info-icon" data-tooltip="Revenue breakdown by project type: AI (AI-related projects), Information Security (security and MDC projects), and Azure (migration, modernization, and other Azure services). Shows total revenue and case count for each category.">ℹ</span>
+                            <span class="info-icon" data-tooltip="Revenue breakdown by project type: AI (AI-related projects), Information Security (security and MDC projects), and Azure (migration, modernization, and other Azure services). Shows stacked revenue by status (Done, Under Review, In Progress, To Do) and case count for each category. Hover over bars for detailed breakdown.">ℹ</span>
                         </h3>
                         <canvas id="projectTypeChart"></canvas>
                     </div>
@@ -3997,9 +3997,11 @@
                             totalRevenue: sizeData.revenue,
                             // Calculate status breakdown for this size
                             doneRevenue: 0,
+                            underReviewRevenue: 0,
                             inProgressRevenue: 0,
                             todoRevenue: 0,
                             doneCases: 0,
+                            underReviewCases: 0,
                             inProgressCases: 0,
                             todoCases: 0,
                             avgRevenue: sizeData.cases > 0 ? sizeData.revenue / sizeData.cases : 0
@@ -4016,9 +4018,11 @@
                     caseCount: stats.caseCount,
                     totalRevenue: stats.totalRevenue,
                     doneRevenue: 0,
+                    underReviewRevenue: 0,
                     inProgressRevenue: 0,
                     todoRevenue: 0,
                     doneCases: 0,
+                    underReviewCases: 0,
                     inProgressCases: 0,
                     todoCases: 0,
                     avgRevenue: stats.caseCount > 0 ? stats.totalRevenue / stats.caseCount : 0,
@@ -4051,6 +4055,9 @@
                     if (category === 'Done') {
                         group.doneRevenue += funding;
                         group.doneCases++;
+                    } else if (category === 'UnderReview') {
+                        group.underReviewRevenue += funding;
+                        group.underReviewCases++;
                     } else if (category === 'InProgress') {
                         group.inProgressRevenue += funding;
                         group.inProgressCases++;
@@ -4066,6 +4073,9 @@
                     if (category === 'Done') {
                         totalGroup.doneRevenue += funding;
                         totalGroup.doneCases++;
+                    } else if (category === 'UnderReview') {
+                        totalGroup.underReviewRevenue += funding;
+                        totalGroup.underReviewCases++;
                     } else if (category === 'InProgress') {
                         totalGroup.inProgressRevenue += funding;
                         totalGroup.inProgressCases++;
