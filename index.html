@@ -3807,15 +3807,23 @@
             // Calculate cumulative data
             const cumulativeTotal = [];
             const cumulativeCompleted = [];
-            const cumulativePending = [];
+            const cumulativeUnderReview = [];
+            const cumulativeInProgress = [];
+            const cumulativeToDo = [];
             const monthlyNew = [];  // Track monthly new cases
 
             let cumulativeTotalSum = 0;
             let cumulativeCompletedSum = 0;
+            let cumulativeUnderReviewSum = 0;
+            let cumulativeInProgressSum = 0;
+            let cumulativeToDoSum = 0;
 
             months.forEach(monthLabel => {
                 let monthTotal = 0;
                 let monthDone = 0;
+                let monthUnderReview = 0;
+                let monthInProgress = 0;
+                let monthToDo = 0;
 
                 // Aggregate data from all sales people
                 Object.values(allDueDateData).forEach(salesData => {
@@ -3823,6 +3831,9 @@
                     if (data) {
                         monthTotal += data.total;
                         monthDone += data.done;
+                        monthUnderReview += data.underreview || 0;
+                        monthInProgress += data.inprogress || 0;
+                        monthToDo += data.todo || 0;
                     }
                 });
 
@@ -3832,17 +3843,24 @@
                 // Cumulative calculations
                 cumulativeTotalSum += monthTotal;
                 cumulativeCompletedSum += monthDone;
+                cumulativeUnderReviewSum += monthUnderReview;
+                cumulativeInProgressSum += monthInProgress;
+                cumulativeToDoSum += monthToDo;
 
                 cumulativeTotal.push(cumulativeTotalSum);
                 cumulativeCompleted.push(cumulativeCompletedSum);
-                cumulativePending.push(cumulativeTotalSum - cumulativeCompletedSum);
+                cumulativeUnderReview.push(cumulativeUnderReviewSum);
+                cumulativeInProgress.push(cumulativeInProgressSum);
+                cumulativeToDo.push(cumulativeToDoSum);
             });
 
             return {
                 months,
                 cumulativeTotal,
                 cumulativeCompleted,
-                cumulativePending,
+                cumulativeUnderReview,
+                cumulativeInProgress,
+                cumulativeToDo,
                 monthlyNew
             };
         }
@@ -4665,20 +4683,42 @@
                             borderColor: 'rgba(75, 192, 192, 1)',
                             borderWidth: 1,
                             stack: 'stack0',
-                            order: 3
+                            order: 4
                         },
-                        // Dataset 2: Cumulative Remaining (Stacked Bar - Top)
+                        // Dataset 2: Cumulative Under Review (Stacked Bar)
                         {
                             type: 'bar',
-                            label: 'Cumulative Remaining',
-                            data: data.cumulativePending,
+                            label: 'Cumulative Under Review',
+                            data: data.cumulativeUnderReview,
+                            backgroundColor: 'rgba(162, 155, 254, 0.7)',
+                            borderColor: 'rgba(108, 92, 231, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0',
+                            order: 4
+                        },
+                        // Dataset 3: Cumulative In Progress (Stacked Bar)
+                        {
+                            type: 'bar',
+                            label: 'Cumulative In Progress',
+                            data: data.cumulativeInProgress,
                             backgroundColor: 'rgba(255, 159, 64, 0.7)',
                             borderColor: 'rgba(255, 159, 64, 1)',
                             borderWidth: 1,
                             stack: 'stack0',
-                            order: 3
+                            order: 4
                         },
-                        // Dataset 3: Cumulative Total (Line)
+                        // Dataset 4: Cumulative To Do (Stacked Bar)
+                        {
+                            type: 'bar',
+                            label: 'Cumulative To Do',
+                            data: data.cumulativeToDo,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0',
+                            order: 4
+                        },
+                        // Dataset 5: Cumulative Total (Line)
                         {
                             type: 'line',
                             label: 'Cumulative Total',
