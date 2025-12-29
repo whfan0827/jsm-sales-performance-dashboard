@@ -3873,10 +3873,12 @@
                     caseCount: 0,
                     totalRevenue: 0,
                     doneRevenue: 0,
+                    underReviewRevenue: 0,
                     inProgressRevenue: 0,
                     todoRevenue: 0,
                     casesWithFunding: 0,
                     doneCases: 0,
+                    underReviewCases: 0,
                     inProgressCases: 0,
                     todoCases: 0,
                     sizeBreakdown: {
@@ -3890,10 +3892,12 @@
                     caseCount: 0,
                     totalRevenue: 0,
                     doneRevenue: 0,
+                    underReviewRevenue: 0,
                     inProgressRevenue: 0,
                     todoRevenue: 0,
                     casesWithFunding: 0,
                     doneCases: 0,
+                    underReviewCases: 0,
                     inProgressCases: 0,
                     todoCases: 0,
                     sizeBreakdown: {
@@ -3907,10 +3911,12 @@
                     caseCount: 0,
                     totalRevenue: 0,
                     doneRevenue: 0,
+                    underReviewRevenue: 0,
                     inProgressRevenue: 0,
                     todoRevenue: 0,
                     casesWithFunding: 0,
                     doneCases: 0,
+                    underReviewCases: 0,
                     inProgressCases: 0,
                     todoCases: 0,
                     sizeBreakdown: {
@@ -3955,6 +3961,9 @@
                 if (category === 'Done') {
                     typeStats[projectType].doneRevenue += funding;
                     typeStats[projectType].doneCases++;
+                } else if (category === 'UnderReview') {
+                    typeStats[projectType].underReviewRevenue += funding;
+                    typeStats[projectType].underReviewCases++;
                 } else if (category === 'InProgress') {
                     typeStats[projectType].inProgressRevenue += funding;
                     typeStats[projectType].inProgressCases++;
@@ -4770,6 +4779,7 @@
                 return `${typeShort}-${sizeShort}`;
             });
             const doneRevenues = data.map(item => item.doneRevenue);
+            const underReviewRevenues = data.map(item => item.underReviewRevenue);
             const inProgressRevenues = data.map(item => item.inProgressRevenue);
             const todoRevenues = data.map(item => item.todoRevenue);
             const caseCounts = data.map(item => item.caseCount);
@@ -4906,6 +4916,17 @@
                         },
                         {
                             type: 'bar',
+                            label: 'Under Review Revenue',
+                            data: underReviewRevenues,
+                            backgroundColor: 'rgba(162, 155, 254, 0.8)',
+                            borderColor: 'rgba(108, 92, 231, 1)',
+                            borderWidth: 1,
+                            stack: 'revenue',
+                            yAxisID: 'y',
+                            order: 2  // Bars on bottom layer
+                        },
+                        {
+                            type: 'bar',
                             label: 'In Progress Revenue',
                             data: inProgressRevenues,
                             backgroundColor: 'rgba(255, 159, 64, 0.8)',
@@ -5026,6 +5047,7 @@
                                         ``,
                                         `💰 Total Revenue: $${item.totalRevenue.toLocaleString()}`,
                                         `  ✅ Done: $${item.doneRevenue.toLocaleString()} (${item.doneCases} cases)`,
+                                        `  🔍 Under Review: $${item.underReviewRevenue.toLocaleString()} (${item.underReviewCases} cases)`,
                                         `  🔄 In Progress: $${item.inProgressRevenue.toLocaleString()} (${item.inProgressCases} cases)`,
                                         `  📋 To Do: $${item.todoRevenue.toLocaleString()} (${item.todoCases} cases)`,
                                         ``,
