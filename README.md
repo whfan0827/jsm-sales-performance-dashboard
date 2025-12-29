@@ -85,11 +85,14 @@ See `sample.csv` for a complete example.
 
 ## 🎨 Status Classification
 
-The dashboard automatically classifies Jira Service Management statuses into three categories:
+The dashboard automatically classifies Jira Service Management statuses into four categories:
 
 - **ToDo** (Yellow): Status starting with 0, 1, 2, or "To Do"
-- **InProgress** (Blue): Status starting with 3-9
+- **InProgress** (Blue): Status starting with 3-8
+- **Under Review** (Purple): Status 9.1-Success or 9.2-Project Report Status
 - **Done** (Red): Status is "Done"
+
+Other 9.x statuses (not 9.1 or 9.2) are classified as InProgress.
 
 ## 👥 Multi-Personnel Support
 
@@ -194,7 +197,31 @@ Use `sample.csv` to test the dashboard features:
 
 ### Recent Updates
 
-#### v1.6 (Latest)
+#### v1.8 (Latest)
+- **🔍 Under Review Status Support**: New status category for enhanced workflow tracking
+  - **Smart Classification**: Automatically identifies cases in review stages (9.1-Success, 9.2-Project Report Status)
+  - **Visual Distinction**: Purple theme (#a29bfe to #6c5ce7) for Under Review across all visualizations
+  - **Complete Integration**: Under Review column added to all tables and charts
+    - 💰 Sales Statistics: Under Review column with purple status card in dashboard
+    - 💡 Presales Statistics: Full Under Review data tracking and sorting
+    - 🛠️ Technical Support Statistics: Complete Under Review integration
+    - 📅 Due Date Summary: Under Review tracking across all months
+    - 📈 KPI Charts: PS and TS performance charts include Under Review data layer
+  - **Accurate Metrics**: All completion rates and statistics now include Under Review cases
+  - **Enhanced Sorting**: Updated all sort functions to support the new column
+  - **Backward Compatible**: Maintains compatibility with existing data exports
+- **Updated Status Classification**: Four categories (ToDo, InProgress, Under Review, Done)
+- **Refined Logic**: Status 9.1 and 9.2 now classified as Under Review; other 9.x remain InProgress
+
+#### v1.7
+- **📊 Enhanced Team Performance Chart**: Added case count overlay to team performance visualization
+  - **Dual Metrics Display**: Shows both revenue bars and case count line in single view
+  - **Right Y-Axis**: Dedicated axis for case count with clear labeling
+  - **Visual Clarity**: Blue line chart overlays revenue bars for easy comparison
+  - **Comprehensive Insights**: Analyze team performance by both volume and value
+- **Improved Chart Layout**: Better positioning and visual hierarchy for clearer data interpretation
+
+#### v1.6
 - **📄 Table Pagination System**: Enhanced data navigation for Sales, Presales, and Technical Support tables
   - **Previous/Next Navigation**: Browse through large datasets with intuitive pagination controls
   - **Page Information Display**: Shows current page, total pages, and item count (e.g., "Page 2 of 5 (43 items)")
@@ -295,9 +322,15 @@ function classifyStatus(status) {
     const statusLower = status.toLowerCase();
     if (statusLower === 'done') return 'Done';
 
+    // Check for Under Review statuses (9.1-Success, 9.2-Project Report Status)
+    if (status.startsWith('9.1') || status.startsWith('9.2')) {
+        return 'UnderReview';
+    }
+
     const firstChar = status[0];
     if (['0', '1', '2'].includes(firstChar)) return 'ToDo';
-    if (['3', '4', '5', '6', '7', '8', '9'].includes(firstChar)) return 'InProgress';
+    if (['3', '4', '5', '6', '7', '8'].includes(firstChar)) return 'InProgress';
+    if (firstChar === '9') return 'InProgress'; // Other 9.x statuses
 
     return null;
 }
@@ -309,6 +342,10 @@ Modify the `.stat-card` CSS classes to customize colors:
 ```css
 .stat-card.todo {
     background: linear-gradient(135deg, #ffd93d 0%, #ffb700 100%);
+}
+
+.stat-card.underreview {
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
 }
 ```
 
