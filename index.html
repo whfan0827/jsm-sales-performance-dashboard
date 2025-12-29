@@ -383,6 +383,12 @@
             print-color-adjust: exact;
         }
 
+        .stat-card.underreview {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
         .stat-label {
             font-size: 14px;
             opacity: 0.9;
@@ -1073,6 +1079,11 @@
                         <div class="stat-value" id="inprogressCount">0</div>
                         <div class="stat-percent" id="inprogressPercent">0%</div>
                     </div>
+                    <div class="stat-card underreview">
+                        <div class="stat-label">Under Review</div>
+                        <div class="stat-value" id="underreviewCount">0</div>
+                        <div class="stat-percent" id="underreviewPercent">0%</div>
+                    </div>
                     <div class="stat-card done">
                         <div class="stat-label">Completed</div>
                         <div class="stat-value" id="doneCount">0</div>
@@ -1156,14 +1167,15 @@
                                     <th class="sortable" onclick="sortTable(1)">Sales Person</th>
                                     <th class="sortable" onclick="sortTable(2)">To Do</th>
                                     <th class="sortable" onclick="sortTable(3)">In Progress</th>
-                                    <th class="sortable" onclick="sortTable(4)">Completed</th>
-                                    <th class="sortable" onclick="sortTable(5)">Subtotal</th>
-                                    <th class="sortable" onclick="sortTable(6)">Expected Revenue</th>
-                                    <th class="sortable" onclick="sortTable(7)">Recognized Revenue</th>
-                                    <th class="sortable" onclick="sortTable(8)">Realization Rate</th>
-                                    <th class="sortable" onclick="sortTable(9)">Completion Rate</th>
-                                    <th class="sortable" onclick="sortTable(10)">KPI Target</th>
-                                    <th class="sortable" onclick="sortTable(11)">Achievement Rate</th>
+                                    <th class="sortable" onclick="sortTable(4)">Under Review</th>
+                                    <th class="sortable" onclick="sortTable(5)">Completed</th>
+                                    <th class="sortable" onclick="sortTable(6)">Subtotal</th>
+                                    <th class="sortable" onclick="sortTable(7)">Expected Revenue</th>
+                                    <th class="sortable" onclick="sortTable(8)">Recognized Revenue</th>
+                                    <th class="sortable" onclick="sortTable(9)">Realization Rate</th>
+                                    <th class="sortable" onclick="sortTable(10)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortTable(11)">KPI Target</th>
+                                    <th class="sortable" onclick="sortTable(12)">Achievement Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="reportBody">
@@ -1217,11 +1229,12 @@
                                     <th class="sortable" onclick="sortPresalesTable(0)">Presales</th>
                                     <th class="sortable" onclick="sortPresalesTable(1)">To Do</th>
                                     <th class="sortable" onclick="sortPresalesTable(2)">In Progress</th>
-                                    <th class="sortable" onclick="sortPresalesTable(3)">Completed</th>
-                                    <th class="sortable" onclick="sortPresalesTable(4)">Subtotal</th>
-                                    <th class="sortable" onclick="sortPresalesTable(5)">Completion Rate</th>
-                                    <th class="sortable" onclick="sortPresalesTable(6)">KPI Target</th>
-                                    <th class="sortable" onclick="sortPresalesTable(7)">Achievement Rate</th>
+                                    <th class="sortable" onclick="sortPresalesTable(3)">Under Review</th>
+                                    <th class="sortable" onclick="sortPresalesTable(4)">Completed</th>
+                                    <th class="sortable" onclick="sortPresalesTable(5)">Subtotal</th>
+                                    <th class="sortable" onclick="sortPresalesTable(6)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortPresalesTable(7)">KPI Target</th>
+                                    <th class="sortable" onclick="sortPresalesTable(8)">Achievement Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="presalesReportBody">
@@ -1275,11 +1288,12 @@
                                     <th class="sortable" onclick="sortTechSupportTable(0)">Technical Support</th>
                                     <th class="sortable" onclick="sortTechSupportTable(1)">To Do</th>
                                     <th class="sortable" onclick="sortTechSupportTable(2)">In Progress</th>
-                                    <th class="sortable" onclick="sortTechSupportTable(3)">Completed</th>
-                                    <th class="sortable" onclick="sortTechSupportTable(4)">Subtotal</th>
-                                    <th class="sortable" onclick="sortTechSupportTable(5)">Completion Rate</th>
-                                    <th class="sortable" onclick="sortTechSupportTable(6)">KPI Target</th>
-                                    <th class="sortable" onclick="sortTechSupportTable(7)">Achievement Rate</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(3)">Under Review</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(4)">Completed</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(5)">Subtotal</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(6)">Completion Rate</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(7)">KPI Target</th>
+                                    <th class="sortable" onclick="sortTechSupportTable(8)">Achievement Rate</th>
                                 </tr>
                             </thead>
                             <tbody id="techsupportReportBody">
@@ -1385,7 +1399,7 @@
         </div>
 
         <footer>
-            <p>Created by Vincent Fan | Version 1.6</p>
+            <p>Created by Vincent Fan | Version 1.8 - Added Under Review Status Support</p>
         </footer>
     </div>
 
@@ -1424,6 +1438,7 @@
             totalCases: 0,
             todo: 0,
             inProgress: 0,
+            underReview: 0,
             done: 0,
             totalPeople: 0
         };
@@ -1782,9 +1797,15 @@
             const statusLower = status.toLowerCase();
             if (statusLower === 'done') return 'Done';
 
+            // Check for Under Review statuses (9.1-Success, 9.2-Project Report Status)
+            if (status.startsWith('9.1') || status.startsWith('9.2')) {
+                return 'UnderReview';
+            }
+
             const firstChar = status[0];
             if (['0', '1', '2'].includes(firstChar)) return 'ToDo';
-            if (['3', '4', '5', '6', '7', '8', '9'].includes(firstChar)) return 'InProgress';
+            if (['3', '4', '5', '6', '7', '8'].includes(firstChar)) return 'InProgress';
+            if (firstChar === '9') return 'InProgress'; // Other 9.x statuses still go to InProgress
 
             return null;
         }
@@ -1812,7 +1833,7 @@
                 if (!salesInfo[sales]) {
                     salesInfo[sales] = {
                         team: team,
-                        stats: { ToDo: 0, InProgress: 0, Done: 0 },
+                        stats: { ToDo: 0, InProgress: 0, UnderReview: 0, Done: 0 },
                         expectedRevenue: 0,
                         recognizedRevenue: 0
                     };
@@ -1857,7 +1878,7 @@
 
         // Update statistics cards
         function updateStatsCards(stats, isFiltered = false) {
-            const totalCases = stats.todo + stats.inProgress + stats.done;
+            const totalCases = stats.todo + stats.inProgress + stats.underReview + stats.done;
 
             if (isFiltered) {
                 // Show filtered stats with comparison to original
@@ -1871,6 +1892,10 @@
                     `${stats.inProgress} <small>/ ${originalStats.inProgress}</small>`;
                 document.getElementById('inprogressPercent').innerHTML =
                     `${(stats.inProgress * 100 / totalCases || 0).toFixed(1)}% <small>(All: ${(originalStats.inProgress * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
+                document.getElementById('underreviewCount').innerHTML =
+                    `${stats.underReview} <small>/ ${originalStats.underReview}</small>`;
+                document.getElementById('underreviewPercent').innerHTML =
+                    `${(stats.underReview * 100 / totalCases || 0).toFixed(1)}% <small>(All: ${(originalStats.underReview * 100 / originalStats.totalCases).toFixed(1)}%)</small>`;
                 document.getElementById('doneCount').innerHTML =
                     `${stats.done} <small>/ ${originalStats.done}</small>`;
                 document.getElementById('donePercent').innerHTML =
@@ -1892,6 +1917,9 @@
                 document.getElementById('inprogressCount').textContent = stats.inProgress;
                 document.getElementById('inprogressPercent').textContent =
                     `${(stats.inProgress * 100 / totalCases).toFixed(1)}%`;
+                document.getElementById('underreviewCount').textContent = stats.underReview;
+                document.getElementById('underreviewPercent').textContent =
+                    `${(stats.underReview * 100 / totalCases).toFixed(1)}%`;
                 document.getElementById('doneCount').textContent = stats.done;
                 document.getElementById('donePercent').textContent =
                     `${(stats.done * 100 / totalCases).toFixed(1)}%`;
@@ -1907,6 +1935,7 @@
             // Calculate totals
             let totalTodo = 0;
             let totalInProgress = 0;
+            let totalUnderReview = 0;
             let totalDone = 0;
             let totalExpectedRevenue = 0;
             let totalRecognizedRevenue = 0;
@@ -1914,12 +1943,13 @@
             Object.values(salesInfo).forEach(info => {
                 totalTodo += info.stats.ToDo;
                 totalInProgress += info.stats.InProgress;
+                totalUnderReview += info.stats.UnderReview || 0;
                 totalDone += info.stats.Done;
                 totalExpectedRevenue += info.expectedRevenue || 0;
                 totalRecognizedRevenue += info.recognizedRevenue || 0;
             });
 
-            const totalCases = totalTodo + totalInProgress + totalDone;
+            const totalCases = totalTodo + totalInProgress + totalUnderReview + totalDone;
             const realizationRate = totalExpectedRevenue > 0
                 ? (totalRecognizedRevenue * 100 / totalExpectedRevenue).toFixed(1)
                 : 0;
@@ -1929,6 +1959,7 @@
                 totalCases: totalCases,
                 todo: totalTodo,
                 inProgress: totalInProgress,
+                underReview: totalUnderReview,
                 done: totalDone,
                 expectedRevenue: totalExpectedRevenue,
                 recognizedRevenue: totalRecognizedRevenue,
@@ -1940,6 +1971,7 @@
             updateStatsCards({
                 todo: totalTodo,
                 inProgress: totalInProgress,
+                underReview: totalUnderReview,
                 done: totalDone,
                 expectedRevenue: totalExpectedRevenue,
                 recognizedRevenue: totalRecognizedRevenue,
@@ -1953,7 +1985,7 @@
             sortedSales.forEach(sales => {
                 const info = salesInfo[sales];
                 const stats = info.stats;
-                const subtotal = stats.ToDo + stats.InProgress + stats.Done;
+                const subtotal = stats.ToDo + stats.InProgress + (stats.UnderReview || 0) + stats.Done;
                 const completionRate = subtotal > 0 ? (stats.Done * 100 / subtotal).toFixed(1) : 0;
                 const kpiTarget = getKPITarget(sales);
                 const achievementRate = calculateAchievementRate(stats.Done, kpiTarget);
@@ -1969,6 +2001,7 @@
                     sales: sales,
                     todo: stats.ToDo,
                     inProgress: stats.InProgress,
+                    underReview: stats.UnderReview || 0,
                     done: stats.Done,
                     subtotal: subtotal,
                     expectedRevenue: expectedRevenue,
@@ -1990,6 +2023,7 @@
                 sales: 'Total',
                 todo: totalTodo,
                 inProgress: totalInProgress,
+                underReview: totalUnderReview,
                 done: totalDone,
                 subtotal: totalCases,
                 expectedRevenue: totalExpectedRevenue,
@@ -2051,6 +2085,7 @@
             const filteredStats = {
                 todo: visibleDataRows.reduce((sum, r) => sum + r.todo, 0),
                 inProgress: visibleDataRows.reduce((sum, r) => sum + r.inProgress, 0),
+                underReview: visibleDataRows.reduce((sum, r) => sum + (r.underReview || 0), 0),
                 done: visibleDataRows.reduce((sum, r) => sum + r.done, 0),
                 expectedRevenue: visibleDataRows.reduce((sum, r) => sum + (r.expectedRevenue || 0), 0),
                 recognizedRevenue: visibleDataRows.reduce((sum, r) => sum + (r.recognizedRevenue || 0), 0)
@@ -2071,6 +2106,7 @@
                 updateStatsCards({
                     todo: originalStats.todo,
                     inProgress: originalStats.inProgress,
+                    underReview: originalStats.underReview,
                     done: originalStats.done,
                     expectedRevenue: originalStats.expectedRevenue,
                     recognizedRevenue: originalStats.recognizedRevenue,
@@ -2109,12 +2145,13 @@
                     sales: 'Total',
                     todo: filteredStats.todo,
                     inProgress: filteredStats.inProgress,
+                    underReview: filteredStats.underReview,
                     done: filteredStats.done,
-                    subtotal: filteredStats.todo + filteredStats.inProgress + filteredStats.done,
+                    subtotal: filteredStats.todo + filteredStats.inProgress + filteredStats.underReview + filteredStats.done,
                     expectedRevenue: filteredStats.expectedRevenue,
                     recognizedRevenue: filteredStats.recognizedRevenue,
                     realizationRate: filteredStats.realizationRate,
-                    completionRate: parseFloat(((filteredStats.done * 100) / (filteredStats.todo + filteredStats.inProgress + filteredStats.done) || 0).toFixed(1)),
+                    completionRate: parseFloat(((filteredStats.done * 100) / (filteredStats.todo + filteredStats.inProgress + filteredStats.underReview + filteredStats.done) || 0).toFixed(1)),
                     kpiTarget: null,
                     achievementRate: parseFloat(avgAchievementRate),
                     isTotal: true
@@ -2138,6 +2175,7 @@
                         <td><strong>${rowData.sales}</strong></td>
                         <td><strong>${rowData.todo}</strong></td>
                         <td><strong>${rowData.inProgress}</strong></td>
+                        <td><strong>${rowData.underReview || 0}</strong></td>
                         <td><strong>${rowData.done}</strong></td>
                         <td><strong>${rowData.subtotal}</strong></td>
                         <td><strong>${formatCurrency(rowData.expectedRevenue)}</strong></td>
@@ -2157,6 +2195,7 @@
                         <td><strong>${rowData.sales}</strong></td>
                         <td>${rowData.todo}</td>
                         <td>${rowData.inProgress}</td>
+                        <td>${rowData.underReview || 0}</td>
                         <td>${rowData.done}</td>
                         <td><strong>${rowData.subtotal}</strong></td>
                         <td><strong>${formatCurrency(rowData.expectedRevenue || 0)}</strong></td>
@@ -2288,14 +2327,15 @@
                     case 1: aVal = a.sales; bVal = b.sales; break;
                     case 2: aVal = a.todo; bVal = b.todo; break;
                     case 3: aVal = a.inProgress; bVal = b.inProgress; break;
-                    case 4: aVal = a.done; bVal = b.done; break;
-                    case 5: aVal = a.subtotal; bVal = b.subtotal; break;
-                    case 6: aVal = a.expectedRevenue || 0; bVal = b.expectedRevenue || 0; break;
-                    case 7: aVal = a.recognizedRevenue || 0; bVal = b.recognizedRevenue || 0; break;
-                    case 8: aVal = a.realizationRate; bVal = b.realizationRate; break;
-                    case 9: aVal = a.completionRate; bVal = b.completionRate; break;
-                    case 10: aVal = a.kpiTarget; bVal = b.kpiTarget; break;
-                    case 11: aVal = a.achievementRate; bVal = b.achievementRate; break;
+                    case 4: aVal = a.underReview || 0; bVal = b.underReview || 0; break;
+                    case 5: aVal = a.done; bVal = b.done; break;
+                    case 6: aVal = a.subtotal; bVal = b.subtotal; break;
+                    case 7: aVal = a.expectedRevenue || 0; bVal = b.expectedRevenue || 0; break;
+                    case 8: aVal = a.recognizedRevenue || 0; bVal = b.recognizedRevenue || 0; break;
+                    case 9: aVal = a.realizationRate; bVal = b.realizationRate; break;
+                    case 10: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 11: aVal = a.kpiTarget; bVal = b.kpiTarget; break;
+                    case 12: aVal = a.achievementRate; bVal = b.achievementRate; break;
                     default: return 0;
                 }
 
@@ -2523,7 +2563,7 @@
                     if (!presalesInfo[presales]) {
                         presalesInfo[presales] = {
                             team: team,
-                            stats: { ToDo: 0, InProgress: 0, Done: 0 }
+                            stats: { ToDo: 0, InProgress: 0, UnderReview: 0, Done: 0 }
                         };
                     }
 
@@ -2589,28 +2629,30 @@
             // Calculate totals
             let totalTodo = 0;
             let totalInProgress = 0;
+            let totalUnderReview = 0;
             let totalDone = 0;
 
             Object.values(presalesInfo).forEach(info => {
                 totalTodo += info.stats.ToDo;
                 totalInProgress += info.stats.InProgress;
+                totalUnderReview += info.stats.UnderReview || 0;
                 totalDone += info.stats.Done;
             });
 
-            const totalCases = totalTodo + totalInProgress + totalDone;
+            const totalCases = totalTodo + totalInProgress + totalUnderReview + totalDone;
 
             // Prepare row data
             allPresalesRows = [];
             const sortedPresales = Object.keys(presalesInfo).sort((a, b) => {
-                const subtotalA = presalesInfo[a].stats.ToDo + presalesInfo[a].stats.InProgress + presalesInfo[a].stats.Done;
-                const subtotalB = presalesInfo[b].stats.ToDo + presalesInfo[b].stats.InProgress + presalesInfo[b].stats.Done;
+                const subtotalA = presalesInfo[a].stats.ToDo + presalesInfo[a].stats.InProgress + (presalesInfo[a].stats.UnderReview || 0) + presalesInfo[a].stats.Done;
+                const subtotalB = presalesInfo[b].stats.ToDo + presalesInfo[b].stats.InProgress + (presalesInfo[b].stats.UnderReview || 0) + presalesInfo[b].stats.Done;
                 return subtotalB - subtotalA;
             });
 
             sortedPresales.forEach(presales => {
                 const info = presalesInfo[presales];
                 const stats = info.stats;
-                const subtotal = stats.ToDo + stats.InProgress + stats.Done;
+                const subtotal = stats.ToDo + stats.InProgress + (stats.UnderReview || 0) + stats.Done;
                 const completionRate = subtotal > 0 ? (stats.Done * 100 / subtotal).toFixed(1) : 0;
                 const kpiTarget = getPresalesKPITarget(presales);
                 const achievementRate = kpiTarget ? calculateAchievementRate(stats.Done, kpiTarget) : null;
@@ -2624,6 +2666,7 @@
                     presales: presales,
                     todo: stats.ToDo,
                     inProgress: stats.InProgress,
+                    underReview: stats.UnderReview || 0,
                     done: stats.Done,
                     subtotal: subtotal,
                     completionRate: parseFloat(completionRate),
@@ -2643,6 +2686,7 @@
                 presales: 'Total',
                 todo: totalTodo,
                 inProgress: totalInProgress,
+                underReview: totalUnderReview,
                 done: totalDone,
                 subtotal: totalCases,
                 completionRate: parseFloat((totalDone * 100 / totalCases).toFixed(1)),
@@ -2694,6 +2738,7 @@
                         <td><strong>${rowData.presales}</strong></td>
                         <td><strong>${rowData.todo}</strong></td>
                         <td><strong>${rowData.inProgress}</strong></td>
+                        <td><strong>${rowData.underReview || 0}</strong></td>
                         <td><strong>${rowData.done}</strong></td>
                         <td><strong>${rowData.subtotal}</strong></td>
                         <td><strong>${rowData.completionRate}%</strong></td>
@@ -2718,6 +2763,7 @@
                         <td><strong>${rowData.presales}</strong></td>
                         <td>${rowData.todo}</td>
                         <td>${rowData.inProgress}</td>
+                        <td>${rowData.underReview || 0}</td>
                         <td>${rowData.done}</td>
                         <td><strong>${rowData.subtotal}</strong></td>
                         <td class="${completionClass}">
@@ -2831,11 +2877,12 @@
                     case 0: aVal = a.presales; bVal = b.presales; break;
                     case 1: aVal = a.todo; bVal = b.todo; break;
                     case 2: aVal = a.inProgress; bVal = b.inProgress; break;
-                    case 3: aVal = a.done; bVal = b.done; break;
-                    case 4: aVal = a.subtotal; bVal = b.subtotal; break;
-                    case 5: aVal = a.completionRate; bVal = b.completionRate; break;
-                    case 6: aVal = a.kpiTarget !== null ? a.kpiTarget : -1; bVal = b.kpiTarget !== null ? b.kpiTarget : -1; break;
-                    case 7: aVal = a.achievementRate !== null ? a.achievementRate : -1; bVal = b.achievementRate !== null ? b.achievementRate : -1; break;
+                    case 3: aVal = a.underReview || 0; bVal = b.underReview || 0; break;
+                    case 4: aVal = a.done; bVal = b.done; break;
+                    case 5: aVal = a.subtotal; bVal = b.subtotal; break;
+                    case 6: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 7: aVal = a.kpiTarget !== null ? a.kpiTarget : -1; bVal = b.kpiTarget !== null ? b.kpiTarget : -1; break;
+                    case 8: aVal = a.achievementRate !== null ? a.achievementRate : -1; bVal = b.achievementRate !== null ? b.achievementRate : -1; break;
                     default: return 0;
                 }
 
@@ -2919,7 +2966,7 @@
                     if (!techsupportInfo[techsupport]) {
                         techsupportInfo[techsupport] = {
                             team: team,
-                            stats: { ToDo: 0, InProgress: 0, Done: 0 }
+                            stats: { ToDo: 0, InProgress: 0, UnderReview: 0, Done: 0 }
                         };
                     }
 
@@ -2985,28 +3032,30 @@
             // Calculate totals
             let totalTodo = 0;
             let totalInProgress = 0;
+            let totalUnderReview = 0;
             let totalDone = 0;
 
             Object.values(techsupportInfo).forEach(info => {
                 totalTodo += info.stats.ToDo;
                 totalInProgress += info.stats.InProgress;
+                totalUnderReview += info.stats.UnderReview || 0;
                 totalDone += info.stats.Done;
             });
 
-            const totalCases = totalTodo + totalInProgress + totalDone;
+            const totalCases = totalTodo + totalInProgress + totalUnderReview + totalDone;
 
             // Prepare row data
             allTechSupportRows = [];
             const sortedTechSupport = Object.keys(techsupportInfo).sort((a, b) => {
-                const subtotalA = techsupportInfo[a].stats.ToDo + techsupportInfo[a].stats.InProgress + techsupportInfo[a].stats.Done;
-                const subtotalB = techsupportInfo[b].stats.ToDo + techsupportInfo[b].stats.InProgress + techsupportInfo[b].stats.Done;
+                const subtotalA = techsupportInfo[a].stats.ToDo + techsupportInfo[a].stats.InProgress + (techsupportInfo[a].stats.UnderReview || 0) + techsupportInfo[a].stats.Done;
+                const subtotalB = techsupportInfo[b].stats.ToDo + techsupportInfo[b].stats.InProgress + (techsupportInfo[b].stats.UnderReview || 0) + techsupportInfo[b].stats.Done;
                 return subtotalB - subtotalA;
             });
 
             sortedTechSupport.forEach(techsupport => {
                 const info = techsupportInfo[techsupport];
                 const stats = info.stats;
-                const subtotal = stats.ToDo + stats.InProgress + stats.Done;
+                const subtotal = stats.ToDo + stats.InProgress + (stats.UnderReview || 0) + stats.Done;
                 const completionRate = subtotal > 0 ? (stats.Done * 100 / subtotal).toFixed(1) : 0;
                 const kpiTarget = getTechSupportKPITarget(techsupport);
                 const achievementRate = kpiTarget ? calculateAchievementRate(stats.Done, kpiTarget) : null;
@@ -3020,6 +3069,7 @@
                     techsupport: techsupport,
                     todo: stats.ToDo,
                     inProgress: stats.InProgress,
+                    underReview: stats.UnderReview || 0,
                     done: stats.Done,
                     subtotal: subtotal,
                     completionRate: parseFloat(completionRate),
@@ -3039,6 +3089,7 @@
                 techsupport: 'Total',
                 todo: totalTodo,
                 inProgress: totalInProgress,
+                underReview: totalUnderReview,
                 done: totalDone,
                 subtotal: totalCases,
                 completionRate: parseFloat((totalDone * 100 / totalCases).toFixed(1)),
@@ -3090,6 +3141,7 @@
                         <td><strong>${rowData.techsupport}</strong></td>
                         <td><strong>${rowData.todo}</strong></td>
                         <td><strong>${rowData.inProgress}</strong></td>
+                        <td><strong>${rowData.underReview || 0}</strong></td>
                         <td><strong>${rowData.done}</strong></td>
                         <td><strong>${rowData.subtotal}</strong></td>
                         <td><strong>${rowData.completionRate}%</strong></td>
@@ -3114,6 +3166,7 @@
                         <td><strong>${rowData.techsupport}</strong></td>
                         <td>${rowData.todo}</td>
                         <td>${rowData.inProgress}</td>
+                        <td>${rowData.underReview || 0}</td>
                         <td>${rowData.done}</td>
                         <td><strong>${rowData.subtotal}</strong></td>
                         <td class="${completionClass}">
@@ -3227,11 +3280,12 @@
                     case 0: aVal = a.techsupport; bVal = b.techsupport; break;
                     case 1: aVal = a.todo; bVal = b.todo; break;
                     case 2: aVal = a.inProgress; bVal = b.inProgress; break;
-                    case 3: aVal = a.done; bVal = b.done; break;
-                    case 4: aVal = a.subtotal; bVal = b.subtotal; break;
-                    case 5: aVal = a.completionRate; bVal = b.completionRate; break;
-                    case 6: aVal = a.kpiTarget !== null ? a.kpiTarget : -1; bVal = b.kpiTarget !== null ? b.kpiTarget : -1; break;
-                    case 7: aVal = a.achievementRate !== null ? a.achievementRate : -1; bVal = b.achievementRate !== null ? b.achievementRate : -1; break;
+                    case 3: aVal = a.underReview || 0; bVal = b.underReview || 0; break;
+                    case 4: aVal = a.done; bVal = b.done; break;
+                    case 5: aVal = a.subtotal; bVal = b.subtotal; break;
+                    case 6: aVal = a.completionRate; bVal = b.completionRate; break;
+                    case 7: aVal = a.kpiTarget !== null ? a.kpiTarget : -1; bVal = b.kpiTarget !== null ? b.kpiTarget : -1; break;
+                    case 8: aVal = a.achievementRate !== null ? a.achievementRate : -1; bVal = b.achievementRate !== null ? b.achievementRate : -1; break;
                     default: return 0;
                 }
 
@@ -3422,7 +3476,7 @@
                     allSummary[sales] = {};
                 }
                 if (!allSummary[sales][monthLabel]) {
-                    allSummary[sales][monthLabel] = { total: 0, todo: 0, inprogress: 0, done: 0 };
+                    allSummary[sales][monthLabel] = { total: 0, todo: 0, inprogress: 0, underreview: 0, done: 0 };
                 }
 
                 // Calculate status
@@ -3432,6 +3486,7 @@
                 allSummary[sales][monthLabel].total++;
                 if (category === 'ToDo') allSummary[sales][monthLabel].todo++;
                 else if (category === 'InProgress') allSummary[sales][monthLabel].inprogress++;
+                else if (category === 'UnderReview') allSummary[sales][monthLabel].underreview++;
                 else if (category === 'Done') allSummary[sales][monthLabel].done++;
             });
 
@@ -3464,7 +3519,7 @@
                     if (allSummary[sales][m.label]) {
                         limitedSummary[sales][m.label] = allSummary[sales][m.label];
                     } else {
-                        limitedSummary[sales][m.label] = { total: 0, todo: 0, inprogress: 0, done: 0 };
+                        limitedSummary[sales][m.label] = { total: 0, todo: 0, inprogress: 0, underreview: 0, done: 0 };
                     }
                 });
             });
@@ -3486,11 +3541,11 @@
             // Build header
             let headerHTML = '<tr><th rowspan="2" style="vertical-align: middle;">Sales Person</th>';
             months.forEach(m => {
-                headerHTML += `<th colspan="5" style="text-align: center;">${m.label} (${m.displayLabel})</th>`;
+                headerHTML += `<th colspan="6" style="text-align: center;">${m.label} (${m.displayLabel})</th>`;
             });
             headerHTML += '</tr><tr>';
             months.forEach(() => {
-                headerHTML += '<th>Total Due</th><th>To Do</th><th>In Progress</th><th>Completed</th><th>Completion Rate</th>';
+                headerHTML += '<th>Total Due</th><th>To Do</th><th>In Progress</th><th>Under Review</th><th>Completed</th><th>Completion Rate</th>';
             });
             headerHTML += '</tr>';
             head.innerHTML = headerHTML;
@@ -3499,7 +3554,7 @@
             if (Object.keys(summary).length === 0) {
                 const row = body.insertRow();
                 const cell = row.insertCell(0);
-                cell.colSpan = 1 + months.length * 5;
+                cell.colSpan = 1 + months.length * 6;
                 cell.style.textAlign = 'center';
                 cell.style.padding = '40px';
                 cell.style.color = '#999';
@@ -3513,7 +3568,7 @@
             // Calculate totals
             const totals = {};
             months.forEach(m => {
-                totals[m.label] = { total: 0, todo: 0, inprogress: 0, done: 0 };
+                totals[m.label] = { total: 0, todo: 0, inprogress: 0, underreview: 0, done: 0 };
             });
 
             // Build data rows
@@ -3538,6 +3593,7 @@
                     totals[m.label].total += data.total;
                     totals[m.label].todo += data.todo;
                     totals[m.label].inprogress += data.inprogress;
+                    totals[m.label].underreview += data.underreview || 0;
                     totals[m.label].done += data.done;
 
                     // Total due
@@ -3550,6 +3606,10 @@
                     const inprogressCell = row.insertCell();
                     inprogressCell.innerHTML = data.inprogress || '-';
                     inprogressCell.style.color = data.inprogress > 0 ? '#4facfe' : '#999';
+                    // Under Review
+                    const underreviewCell = row.insertCell();
+                    underreviewCell.innerHTML = data.underreview || '-';
+                    underreviewCell.style.color = data.underreview > 0 ? '#a29bfe' : '#999';
                     // Done
                     const doneCell = row.insertCell();
                     doneCell.innerHTML = data.done || '-';
@@ -3581,6 +3641,7 @@
                 totalRow.insertCell().innerHTML = `<strong>${data.total}</strong>`;
                 totalRow.insertCell().innerHTML = `<strong>${data.todo}</strong>`;
                 totalRow.insertCell().innerHTML = `<strong>${data.inprogress}</strong>`;
+                totalRow.insertCell().innerHTML = `<strong>${data.underreview || 0}</strong>`;
                 totalRow.insertCell().innerHTML = `<strong>${data.done}</strong>`;
                 totalRow.insertCell().innerHTML = `<strong>${completionRate}%</strong>`;
             });
@@ -3664,7 +3725,7 @@
         // Prepare Sales Ranking Data (Top 10)
         function prepareSalesRanking(salesInfo) {
             const salesArray = Object.entries(salesInfo).map(([name, info]) => {
-                const totalCases = info.stats.ToDo + info.stats.InProgress + info.stats.Done;
+                const totalCases = info.stats.ToDo + info.stats.InProgress + (info.stats.UnderReview || 0) + info.stats.Done;
                 const completionRate = totalCases > 0 ? (info.stats.Done / totalCases * 100).toFixed(1) : 0;
 
                 return {
@@ -3685,13 +3746,14 @@
         function preparePSData(presalesInfo) {
             const psArray = Object.entries(presalesInfo).map(([name, info]) => {
                 const stats = info.stats;
-                const totalCases = stats.ToDo + stats.InProgress + stats.Done;
+                const totalCases = stats.ToDo + stats.InProgress + (stats.UnderReview || 0) + stats.Done;
                 const completionRate = totalCases > 0 ? (stats.Done / totalCases * 100).toFixed(1) : 0;
 
                 return {
                     name: name,
                     todo: stats.ToDo,
                     inProgress: stats.InProgress,
+                    underReview: stats.UnderReview || 0,
                     done: stats.Done,
                     totalCases: totalCases,
                     completionRate: parseFloat(completionRate)
@@ -3707,13 +3769,14 @@
         function prepareTSData(techsupportInfo) {
             const tsArray = Object.entries(techsupportInfo).map(([name, info]) => {
                 const stats = info.stats;
-                const totalCases = stats.ToDo + stats.InProgress + stats.Done;
+                const totalCases = stats.ToDo + stats.InProgress + (stats.UnderReview || 0) + stats.Done;
                 const completionRate = totalCases > 0 ? (stats.Done / totalCases * 100).toFixed(1) : 0;
 
                 return {
                     name: name,
                     todo: stats.ToDo,
                     inProgress: stats.InProgress,
+                    underReview: stats.UnderReview || 0,
                     done: stats.Done,
                     totalCases: totalCases,
                     completionRate: parseFloat(completionRate)
@@ -4315,6 +4378,7 @@
             const names = psData.map(ps => ps.name);
             const todo = psData.map(ps => ps.todo);
             const inProgress = psData.map(ps => ps.inProgress);
+            const underReview = psData.map(ps => ps.underReview || 0);
             const done = psData.map(ps => ps.done);
             const completionRate = psData.map(ps => ps.completionRate);
 
@@ -4338,6 +4402,15 @@
                             data: inProgress,
                             backgroundColor: 'rgba(255, 206, 86, 0.7)',
                             borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0',
+                            order: 2
+                        },
+                        {
+                            label: 'Under Review',
+                            data: underReview,
+                            backgroundColor: 'rgba(162, 155, 254, 0.7)',
+                            borderColor: 'rgba(108, 92, 231, 1)',
                             borderWidth: 1,
                             stack: 'stack0',
                             order: 2
@@ -4432,6 +4505,7 @@
             const names = tsData.map(ts => ts.name);
             const todo = tsData.map(ts => ts.todo);
             const inProgress = tsData.map(ts => ts.inProgress);
+            const underReview = tsData.map(ts => ts.underReview || 0);
             const done = tsData.map(ts => ts.done);
             const completionRate = tsData.map(ts => ts.completionRate);
 
@@ -4455,6 +4529,15 @@
                             data: inProgress,
                             backgroundColor: 'rgba(255, 206, 86, 0.7)',
                             borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1,
+                            stack: 'stack0',
+                            order: 2
+                        },
+                        {
+                            label: 'Under Review',
+                            data: underReview,
+                            backgroundColor: 'rgba(162, 155, 254, 0.7)',
+                            borderColor: 'rgba(108, 92, 231, 1)',
                             borderWidth: 1,
                             stack: 'stack0',
                             order: 2
@@ -5547,7 +5630,7 @@
         <!-- Report Footer -->
         <div class="report-footer">
             <p><strong>JSM Dashboard - Performance Report</strong></p>
-            <p>Created by Vincent Fan | Version 1.6</p>
+            <p>Created by Vincent Fan | Version 1.8 - Added Under Review Status Support</p>
             <p>This is an automated report generated from Jira Service Management data.</p>
         </div>
     </div>
